@@ -206,6 +206,19 @@ Terraform Proxmox Manager는 Proxmox VE 환경에서 가상머신을 자동으�
 - **자동 백업**: Proxmox 백업 시스템 통합
 - **방화벽 관리**: 서버별 방화벽 규칙 자동 설정
 
+### **SSH 접속**
+```bash
+# 기본 SSH 접속 (Rocky Linux)
+ssh rocky@<서버_IP_주소>
+
+# SSH 키 사용 (권장)
+ssh -i ~/.ssh/id_rsa rocky@<서버_IP_주소>
+
+# SSH 옵션 포함
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null rocky@<서버_IP_주소>
+```
+
+
 ## 🏗️ 시스템 아키텍처
 
 ![시스템 아키텍처 다이어그램](docs/images/architecture-diagram.png)
