@@ -23,6 +23,70 @@ Terraform Proxmox Manager
 5) 모니터링 스택 실행: `monitoring/start-monitoring.sh` 또는 `docker compose -f monitoring/docker-compose.yml up -d`
 6) Flask 앱 실행: `python run.py`
 
+## ⚠️ Proxmox Cloud-init 템플릿 사전 준비
+
+### Proxmox에서 Cloud-init 템플릿 생성
+
+이 시스템을 사용하기 전에 Proxmox에서 cloud-init을 지원하는 VM 템플릿을 생성해야 합니다.
+
+#### 1. 기본 VM 생성
+```bash
+# Proxmox 웹 UI에서:
+# 1. "Create VM" 클릭
+# 2. VM ID: 8000 (템플릿용)
+# 3. OS: Linux, Version: Rocky Linux 8/9
+# 4. CPU: 2 cores, Memory: 2GB
+# 5. Disk: 20GB
+# 6. Network: vmbr0
+```
+
+#### 2. qcow2 이미지 다운
+```bash
+# Proxmox 서버에 SSH 접속 후:
+cd /var/lib/vz/template/qcow2
+wget https://download.rockylinux.org/pub/rocky/8/images/Rocky-8-GenericCloud.latest.x86_64.qcow2
+```
+
+#### 3. Cloud-init 설정
+```bash
+qm create 8000 --name "rocky8-cloudinit-template" --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
+pvesm status
+qm importdisk 8000 Rocky-8-GenericCloud.latest.x86_64.qcow2 local --format qcow2
+```
+
+#### 4. Cloud-Init 디스크 추가
+```bash
+qm set 8000 --ide2 local:cloudinit
+qm set 8000 --boot c --bootdisk scsi0
+qm set 8000 --serial0 socket --vga serial0
+```
+
+#### 5. 템플릿으로 변환
+```bash
+qm template 8000
+# Proxmox CLI에서 템플릿 ID 확인
+qm list | grep template
+# 예: 9000 rocky-cloud-init template
+```
+
+### .env 파일 설정
+```bash
+# .env 파일에 템플릿 ID 추가
+TEMPLATE_VM_ID=8000
+```
+
+### 지원 OS 템플릿
+- **Rocky Linux 8/9**: 권장 (완전 지원)
+- **CentOS 8/9**: 지원
+- **Ubuntu 20.04/22.04**: 지원
+- **RHEL 8/9**: 지원
+
+### 주의사항
+- **Cloud-init 필수**: 템플릿에 cloud-init이 설치되어 있어야 함
+- **SSH 키**: 템플릿에 SSH 키가 설정되어 있어야 함
+- **네트워크**: DHCP 설정이 되어 있어야 함
+- **디스크**: 자동 확장이 가능해야 함
+
 ## ⚠️ 서버 생성 시 주의사항
 
 ### 서버 부팅 시간
