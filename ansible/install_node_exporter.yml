@@ -1,0 +1,68 @@
+---
+# Node Exporter 설치 Playbook
+# 이 Playbook은 --limit 옵션과 함께 사용되어 특정 서버에만 Node Exporter를 설치합니다
+- name: Node Exporter 설치 및 설정
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  vars:
+    node_exporter_version: "1.6.1"
+    node_exporter_port: 9100
+    
+  tasks:
+    - name: 대상 서버 확인
+      debug:
+        msg: "Node Exporter 설치 대상: {{ inventory_hostname }} ({{ ansible_default_ipv4.address }})"
+      
+    - name: Node Exporter 설치 확인
+      stat:
+        path: /opt/node_exporter/node_exporter
+      register: node_exporter_installed
+      
+    - name: Node Exporter 서비스 상태 확인
+      systemd:
+        name: node_exporter
+      register: node_exporter_service
+      ignore_errors: yes
+      
+    - name: Node Exporter 설치 상태 출력
+      debug:
+        msg: |
+          Node Exporter 설치 상태:
+          - 바이너리 존재: {{ node_exporter_installed.stat.exists }}
+          - 서비스 상태: {{ node_exporter_service.status.ActiveState | default('unknown') }}
+          - 서비스 활성화: {{ node_exporter_service.status.UnitFileState | default('unknown') }}
+          
+    - name: Node Exporter 설치 (미설치된 경우에만)
+      include_role:
+        name: node_exporter
+      when: not node_exporter_installed.stat.exists
+      
+    - name: Node Exporter 서비스 재시작 (이미 설치된 경우)
+      systemd:
+        name: node_exporter
+        state: restarted
+        daemon_reload: yes
+      when: node_exporter_installed.stat.exists and node_exporter_service.status.ActiveState != "active"
+      
+    - name: Node Exporter 포트 확인
+      wait_for:
+        port: "{{ node_exporter_port }}"
+        host: "{{ ansible_default_ipv4.address }}"
+        timeout: 30
+      register: port_check
+      
+    - name: Node Exporter 설치 완료 알림
+      debug:
+        msg: |
+          ✅ Node Exporter 설치 완료!
+          - 서버: {{ inventory_hostname }}
+          - IP: {{ ansible_default_ipv4.address }}
+          - 포트: {{ node_exporter_port }}
+          - 메트릭 URL: http://{{ ansible_default_ipv4.address }}:{{ node_exporter_port }}/metrics
+          
+    - name: Node Exporter 설치 실패 알림
+      fail:
+        msg: "Node Exporter 포트 {{ node_exporter_port }}에 연결할 수 없습니다."
+      when: port_check.failed

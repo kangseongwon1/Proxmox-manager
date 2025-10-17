@@ -1,0 +1,169 @@
+<!-- Security Group 설정 모달 -->
+<div class="modal fade" id="security-group-config-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-cog me-2"></i>Security Group 설정: <span id="sg-group-name"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- 규칙 관리 섹션 -->
+        <div class="row">
+          <div class="col-md-8">
+            <!-- 규칙 목록 -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">방화벽 규칙</h6>
+            </div>
+            
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead class="table-light">
+                  <tr>
+                    <th>방향</th>
+                    <th>프로토콜</th>
+                    <th>포트</th>
+                    <th>소스 IP</th>
+                    <th>대상 IP</th>
+                    <th>동작</th>
+                    <th>설명</th>
+                    <th>관리</th>
+                  </tr>
+                </thead>
+                <tbody id="sg-rules-tbody">
+                  <!-- 동적으로 로드됨 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="col-md-4">
+            <!-- 규칙 추가 폼 -->
+            <div class="card">
+              <div class="card-header">
+                <h6 class="mb-0">새 규칙 추가</h6>
+              </div>
+              <div class="card-body">
+                <form id="add-sg-rule-form">
+                  <!-- 매크로 선택 -->
+                  <div class="mb-2">
+                    <label class="form-label">서비스 매크로</label>
+                    <select class="form-select form-select-sm" id="macro-select" name="macro">
+                      <option value="">직접 입력</option>
+                      <option value="SSH">SSH (포트 22)</option>
+                      <option value="HTTP">HTTP (포트 80)</option>
+                      <option value="HTTPS">HTTPS (포트 443)</option>
+                      <option value="FTP">FTP (포트 21)</option>
+                      <option value="FTPS">FTPS (포트 990)</option>
+                      <option value="SFTP">SFTP (포트 22)</option>
+                      <option value="SMTP">SMTP (포트 25)</option>
+                      <option value="POP3">POP3 (포트 110)</option>
+                      <option value="IMAP">IMAP (포트 143)</option>
+                      <option value="DNS">DNS (포트 53)</option>
+                      <option value="DHCP">DHCP (포트 67, 68)</option>
+                      <option value="NTP">NTP (포트 123)</option>
+                      <option value="MySQL">MySQL (포트 3306)</option>
+                      <option value="PostgreSQL">PostgreSQL (포트 5432)</option>
+                      <option value="Redis">Redis (포트 6379)</option>
+                      <option value="MongoDB">MongoDB (포트 27017)</option>
+                      <option value="Elasticsearch">Elasticsearch (포트 9200)</option>
+                      <option value="Kafka">Kafka (포트 9092)</option>
+                      <option value="RabbitMQ">RabbitMQ (포트 5672)</option>
+                    </select>
+                  </div>
+                  
+                  <div class="mb-2">
+                    <label class="form-label">프로토콜</label>
+                    <select class="form-select form-select-sm" name="protocol" id="protocol-select" required>
+                      <option value="tcp">TCP</option>
+                      <option value="udp">UDP</option>
+                      <option value="icmp">ICMP</option>
+                      <option value="any">ANY</option>
+                    </select>
+                  </div>
+                  
+                  <div class="mb-2">
+                    <label class="form-label">포트</label>
+                    <input type="text" class="form-control form-control-sm" name="port" id="port-input" placeholder="예: 80, 443, 22">
+                  </div>
+                  
+                  <div class="mb-2">
+                    <label class="form-label">소스 IP</label>
+                    <input type="text" class="form-control form-control-sm" name="source_ip" placeholder="예: 0.0.0.0/0">
+                  </div>
+                  
+                  <div class="mb-2">
+                    <label class="form-label">대상 IP</label>
+                    <input type="text" class="form-control form-control-sm" name="dest_ip" placeholder="예: 192.168.1.0/24">
+                  </div>
+                  
+                  <div class="mb-2">
+                    <label class="form-label">동작</label>
+                    <select class="form-select form-select-sm" name="action" required>
+                      <option value="ACCEPT">ACCEPT</option>
+                      <option value="DENY">DENY</option>
+                      <option value="REJECT">REJECT</option>
+                    </select>
+                  </div>
+                  
+                  <div class="mb-3">
+                    <label class="form-label">설명</label>
+                    <input type="text" class="form-control form-control-sm" name="description" placeholder="규칙 설명">
+                  </div>
+                  
+                  <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                      <i class="fas fa-plus me-1"></i>규칙 추가
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+        <button type="button" class="btn btn-danger" id="delete-sg-group-btn">
+          <i class="fas fa-trash me-1"></i>Security Group 삭제
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Security Group 생성 모달 -->
+<div class="modal fade" id="create-security-group-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-plus me-2"></i>새 Security Group 생성
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="create-sg-group-form">
+          <div class="mb-3">
+            <label class="form-label">Security Group 이름</label>
+            <input type="text" class="form-control" name="group_name" placeholder="예: web-servers" required>
+            <div class="form-text">영문, 숫자, 하이픈(-), 언더스코어(_)만 사용 가능합니다.</div>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">설명</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="Security Group에 대한 설명을 입력하세요"></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="submit" class="btn btn-primary" form="create-sg-group-form">
+          <i class="fas fa-plus me-1"></i>생성
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

@@ -1,0 +1,15 @@
+[Unit]
+Description=Elasticsearch
+After=network.target
+
+[Service]
+Type=simple
+User=elasticsearch
+Group=elasticsearch
+ExecStart=/opt/elasticsearch/bin/elasticsearch
+Restart=always
+LimitMEMLOCK=infinity
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target 

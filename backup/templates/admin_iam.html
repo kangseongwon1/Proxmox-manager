@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>IAM - 관리자 권한 관리</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .iam-table th, .iam-table td { vertical-align: middle; text-align: center; }
+    .iam-role-select { min-width: 100px; }
+    .iam-perm-checkbox { width: 20px; height: 20px; }
+    .iam-save-btn { min-width: 70px; }
+    .iam-admin-row { background: #e9ecef; }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <h2 class="mb-4"><i class="fas fa-user-shield me-2"></i>IAM - 사용자 권한 관리</h2>
+    <div id="iam-alert" class="alert d-none"></div>
+    <div class="table-responsive">
+      <table class="table table-bordered iam-table align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>사용자명</th>
+            <th>이메일</th>
+            <th>역할</th>
+            <th v-for="perm in permissions">{{ perm }}</th>
+            <th>저장</th>
+          </tr>
+        </thead>
+        <tbody id="iam-user-tbody">
+          <!-- JS로 동적 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let PERMISSIONS = [];
+    let USERS = {};
+    function showIAMAlert(type, msg) {
+      const alert = $('#iam-alert');
+      alert.removeClass('d-none alert-success alert-danger alert-info').addClass('alert-' + type).text(msg).show();
+      setTimeout(() => alert.hide(), 2000);
+    }
+    function renderTable() {
+      const tbody = $('#iam-user-tbody');
+      tbody.empty();
+      Object.entries(USERS).forEach(([username, user]) => {
+        const isAdmin = user.role === 'admin';
+        let tr = $('<tr>').toggleClass('iam-admin-row', isAdmin);
+        tr.append(`<td>${username}</td>`);
+        tr.append(`<td>${user.email || ''}</td>`);
+        // 역할 드롭다운
+        let roleSel = `<select class="form-select form-select-sm iam-role-select" data-username="${username}" ${isAdmin ? 'disabled' : ''}>
+          <option value="admin" ${user.role==='admin'?'selected':''}>admin</option>
+          <option value="developer" ${user.role==='developer'?'selected':''}>developer</option>
+          <option value="operator" ${user.role==='operator'?'selected':''}>operator</option>
+          <option value="viewer" ${user.role==='viewer'?'selected':''}>viewer</option>
+        </select>`;
+        tr.append(`<td>${roleSel}</td>`);
+        // 권한 체크박스
+        PERMISSIONS.forEach(perm => {
+          const checked = user.permissions.includes(perm) ? 'checked' : '';
+          tr.append(`<td><input type="checkbox" class="form-check-input iam-perm-checkbox" data-username="${username}" data-perm="${perm}" ${checked} ${isAdmin ? 'disabled' : ''}></td>`);
+        });
+        // 저장 버튼
+        tr.append(`<td><button class="btn btn-primary btn-sm iam-save-btn" data-username="${username}" ${isAdmin ? 'disabled' : ''}>저장</button></td>`);
+        tbody.append(tr);
+      });
+    }
+    function loadIAM() {
+      $.get('/admin/iam', function(res) {
+        USERS = res.users;
+        PERMISSIONS = res.permissions;
+        renderTable();
+      });
+    }
+    // 역할 변경
+    $(document).on('change', '.iam-role-select', function() {
+      const username = $(this).data('username');
+      const newRole = $(this).val();
+      $.post(`/admin/iam/${username}/role`, JSON.stringify({ role: newRole }), function(res) {
+        showIAMAlert('success', res.message);
+        loadIAM();
+      }).fail(function(xhr) {
+        showIAMAlert('danger', xhr.responseJSON?.error || '역할 변경 실패');
+      });
+    });
+    // 권한 저장
+    $(document).on('click', '.iam-save-btn', function() {
+      const username = $(this).data('username');
+      const perms = [];
+      $(`.iam-perm-checkbox[data-username='${username}']:checked`).each(function() {
+        perms.push($(this).data('perm'));
+      });
+      $.post(`/admin/iam/${username}/permissions`, JSON.stringify({ permissions: perms }), function(res) {
+        showIAMAlert('success', res.message);
+        loadIAM();
+      }).fail(function(xhr) {
+        showIAMAlert('danger', xhr.responseJSON?.error || '권한 변경 실패');
+      });
+    });
+    // 체크박스 변경 시 저장 버튼 활성화
+    $(document).on('change', '.iam-perm-checkbox', function() {
+      const username = $(this).data('username');
+      $(`.iam-save-btn[data-username='${username}']`).removeAttr('disabled');
+    });
+    // 초기 로드
+    loadIAM();
+  </script>
+</body>
+</html> 

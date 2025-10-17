@@ -1,0 +1,133 @@
+---
+# 공통 시스템 설정 (서버 생성 시 1회만 실행)
+- name: 공통 시스템 설정
+  block:
+    - name: Set timezone to KST
+      timezone:
+        name: "{{ timezone }}"
+      when: timezone is defined and timezone != ""
+
+    - name: Configure SSH password authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication {{ "yes" if ssh_password_authentication else "no" }}'
+        state: present
+      notify: restart sshd
+      when: ssh_password_authentication is defined
+
+    - name: Disable SELinux (immediate)
+      selinux:
+        state: disabled
+      when: selinux_enabled is defined and not selinux_enabled
+
+    - name: Disable SELinux (permanent)
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=disabled'
+        state: present
+      when: selinux_enabled is defined and not selinux_enabled
+
+# Node Exporter 설치 및 설정
+- name: Node Exporter 설치 및 설정
+  block:
+    - name: Node Exporter 사용자 생성
+      user:
+        name: node_exporter
+        system: yes
+        shell: /bin/false
+        home: /var/lib/node_exporter
+        create_home: yes
+        state: present
+
+    - name: Node Exporter 디렉토리 생성
+      file:
+        path: /opt/node_exporter
+        state: directory
+        owner: node_exporter
+        group: node_exporter
+        mode: '0755'
+
+    - name: Node Exporter 다운로드 (Linux x86_64)
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-amd64.tar.gz"
+        dest: /tmp/node_exporter.tar.gz
+        mode: '0644'
+      when: ansible_architecture == "x86_64"
+
+    - name: Node Exporter 다운로드 (Linux ARM64)
+      get_url:
+        url: "https://github.com/prometheus/node_exporter/releases/download/v1.6.1/node_exporter-1.6.1.linux-arm64.tar.gz"
+        dest: /tmp/node_exporter.tar.gz
+        mode: '0644'
+      when: ansible_architecture == "aarch64"
+
+    - name: Node Exporter 압축 해제
+      unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /tmp/
+        remote_src: yes
+        owner: node_exporter
+        group: node_exporter
+
+    - name: Node Exporter 바이너리 복사
+      copy:
+        src: "/tmp/node_exporter-1.6.1.linux-{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }}/node_exporter"
+        dest: /opt/node_exporter/node_exporter
+        owner: node_exporter
+        group: node_exporter
+        mode: '0755'
+        remote_src: yes
+
+    - name: Node Exporter systemd 서비스 파일 생성
+      template:
+        src: node_exporter.service.j2
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: restart node_exporter
+
+    - name: Node Exporter 서비스 활성화 및 시작
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: 임시 파일 정리
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/node_exporter.tar.gz
+        - /tmp/node_exporter-1.6.1.linux-amd64
+        - /tmp/node_exporter-1.6.1.linux-arm64
+
+    - name: Node Exporter 서비스 상태 확인
+      systemd:
+        name: node_exporter
+      register: node_exporter_status
+
+    - name: Node Exporter 포트 확인
+      wait_for:
+        port: 9100
+        host: "{{ ansible_default_ipv4.address }}"
+        timeout: 30
+      when: node_exporter_status.status.ActiveState == "active"
+
+  rescue:
+    - name: Node Exporter 설치 실패 시 정리
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/node_exporter.tar.gz
+        - /tmp/node_exporter-1.6.1.linux-amd64
+        - /tmp/node_exporter-1.6.1.linux-arm64
+      ignore_errors: yes
+
+    - name: Node Exporter 설치 실패 알림
+      fail:
+        msg: "Node Exporter 설치에 실패했습니다."

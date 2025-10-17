@@ -1,0 +1,27 @@
+- become: true
+  hosts: "{{ target_server }}"
+  gather_facts: false
+  tasks:
+    - name: Test connection
+      ping:
+      
+    - name: Show system info
+      debug:
+        msg: "Connected to {{ inventory_hostname }}"
+        
+    - name: Check if nginx is installed
+      package_facts:
+        
+    - name: Show installed packages
+      debug:
+        msg: "{{ ansible_facts.packages }}"
+        
+    - name: Install nginx (simple test)
+      package:
+        name: nginx
+        state: present
+      when: role == 'web'
+      
+    - name: Show final status
+      debug:
+        msg: "Playbook completed successfully for {{ inventory_hostname }}"

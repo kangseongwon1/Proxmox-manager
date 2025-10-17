@@ -1,0 +1,138 @@
+<div class="main-content">
+  <div class="dashboard-summary">
+    <h3><i class="fas fa-tachometer-alt me-2"></i>모든 상태 요약</h3>
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon"><i class="fas fa-server"></i></div>
+          <div class="stats-number" id="total-servers">{{ total_servers }}</div>
+          <div class="stats-label">총 서버</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon"><i class="fas fa-play-circle"></i></div>
+          <div class="stats-number" id="running-servers">{{ running_servers }}</div>
+          <div class="stats-label">실행 중</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon"><i class="fas fa-pause-circle"></i></div>
+          <div class="stats-number" id="stopped-servers">{{ stopped_servers }}</div>
+          <div class="stats-label">중지됨</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="stats-icon"><i class="fas fa-network-wired"></i></div>
+          <div class="stats-number" id="node-name">{{ node_name or 'prox' }}</div>
+          <div class="stats-label">호스트 노드</div>
+        </div>
+      </div>
+    </div>
+    
+            <!-- 리소스 할당 비율 섹션 -->
+    <div class="row mb-4">
+      <div class="col-md-6">
+        <div class="resource-card">
+          <div class="resource-header">
+            <h5><i class="fas fa-microchip me-2"></i>CPU 리소스</h5>
+          </div>
+          <div class="resource-content">
+            <div class="resource-ring-container">
+              <div class="resource-ring" id="cpu-ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#007bff" stroke-width="8" 
+                          stroke-dasharray="314" stroke-dashoffset="314" id="cpu-progress"/>
+                </svg>
+                <div class="ring-text">
+                  <div class="ring-number" id="cpu-usage-percent">0%</div>
+                  <div class="ring-label">할당 비율</div>
+                </div>
+              </div>
+            </div>
+            <div class="resource-details">
+              <div class="resource-item">
+                <span class="resource-label">노드 전체:</span>
+                <span class="resource-value" id="node-total-cpu">0 코어</span>
+              </div>
+              <div class="resource-item">
+                <span class="resource-label">VM 할당:</span>
+                <span class="resource-value" id="vm-total-cpu">0 코어</span>
+              </div>
+              <div class="resource-item">
+                <span class="resource-label">VM 사용:</span>
+                <span class="resource-value" id="vm-used-cpu">0 코어</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="resource-card">
+          <div class="resource-header">
+            <h5><i class="fas fa-memory me-2"></i>메모리 리소스</h5>
+          </div>
+          <div class="resource-content">
+            <div class="resource-ring-container">
+              <div class="resource-ring" id="memory-ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#e9ecef" stroke-width="8"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#28a745" stroke-width="8" 
+                          stroke-dasharray="314" stroke-dashoffset="314" id="memory-progress"/>
+                </svg>
+                <div class="ring-text">
+                  <div class="ring-number" id="memory-usage-percent">0%</div>
+                  <div class="ring-label">할당 비율</div>
+                </div>
+              </div>
+            </div>
+            <div class="resource-details">
+              <div class="resource-item">
+                <span class="resource-label">노드 전체:</span>
+                <span class="resource-value" id="node-total-memory">0 GB</span>
+              </div>
+              <div class="resource-item">
+                <span class="resource-label">VM 할당:</span>
+                <span class="resource-value" id="vm-total-memory">0 GB</span>
+              </div>
+              <div class="resource-item">
+                <span class="resource-label">VM 사용:</span>
+                <span class="resource-value" id="vm-used-memory">0 GB</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 서버 요약 패널 -->
+    <div class="dashboard-card mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>서버 요약</h5>
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-secondary btn-sm me-2" id="toggle-server-summary-btn" title="서버 요약 확장/축소 (더블클릭으로 최대화)">
+            <i class="fas fa-expand-alt" id="toggle-server-summary-icon"></i>
+          </button>
+          <button class="btn btn-outline-primary btn-sm" id="dashboard-refresh-btn"><i class="fas fa-sync-alt me-1"></i>새로고침</button>
+        </div>
+      </div>
+      <div class="card-body p-0" id="dashboard-server-panels">
+        <div class="server-summary-container" id="server-summary-container">
+          <div class="text-center text-muted py-4">서버 정보를 불러오는 중...</div>
+        </div>
+      </div>
+    </div>
+    <!-- 스토리지 요약 패널 -->
+    <div class="dashboard-card mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0"><i class="fas fa-hdd me-2"></i>스토리지 요약</h5>
+        <button class="btn btn-outline-primary btn-sm" id="dashboard-storage-refresh-btn"><i class="fas fa-sync-alt me-1"></i>새로고침</button>
+      </div>
+      <div class="card-body p-0" id="dashboard-storage-panel">
+        <div class="text-center text-muted py-4">스토리지 정보를 불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+</div> 

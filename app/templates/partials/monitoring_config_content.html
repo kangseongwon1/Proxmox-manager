@@ -1,0 +1,259 @@
+<!-- 모니터링 설정 페이지 콘텐츠 -->
+<div class="main-content">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">모니터링 시스템 설정</h6>
+                </div>
+                <div class="card-body">
+                    <form id="monitoring-config-form">
+                        <!-- Grafana 설정 -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Grafana 설정</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="grafana_url" class="form-label">Grafana URL</label>
+                                <input type="text" class="form-control" id="grafana_url" name="grafana_url" placeholder="http://localhost:3000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="grafana_username" class="form-label">사용자명</label>
+                                <input type="text" class="form-control" id="grafana_username" name="grafana_username" placeholder="admin">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="grafana_password" class="form-label">비밀번호</label>
+                                <input type="password" class="form-control" id="grafana_password" name="grafana_password" placeholder="admin">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="org_id" class="form-label">조직 ID</label>
+                                <input type="text" class="form-control" id="org_id" name="org_id" placeholder="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dashboard_uid" class="form-label">대시보드 UID</label>
+                                <input type="text" class="form-control" id="dashboard_uid" name="dashboard_uid" placeholder="system_monitoring">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="auto_refresh" class="form-label">자동 새로고침</label>
+                                <select class="form-select" id="auto_refresh" name="auto_refresh">
+                                    <option value="5s">5초</option>
+                                    <option value="10s">10초</option>
+                                    <option value="30s">30초</option>
+                                    <option value="1m">1분</option>
+                                    <option value="5m">5분</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="anonymous_access" name="anonymous_access">
+                                    <label class="form-check-label" for="anonymous_access">
+                                        익명 접근 허용
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Prometheus 설정 -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">Prometheus 설정</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="prometheus_url" class="form-label">Prometheus URL</label>
+                                <input type="text" class="form-control" id="prometheus_url" name="prometheus_url" placeholder="http://localhost:9090">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="prometheus_username" class="form-label">사용자명 (선택사항)</label>
+                                <input type="text" class="form-control" id="prometheus_username" name="prometheus_username" placeholder="">
+                            </div>
+                        </div>
+
+                        <!-- 모니터링 설정 -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">모니터링 설정</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="default_time_range" class="form-label">기본 시간 범위</label>
+                                <select class="form-select" id="default_time_range" name="default_time_range">
+                                    <option value="1h">1시간</option>
+                                    <option value="6h">6시간</option>
+                                    <option value="24h">24시간</option>
+                                    <option value="7d">7일</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="health_check_interval" class="form-label">상태 확인 간격</label>
+                                <select class="form-select" id="health_check_interval" name="health_check_interval">
+                                    <option value="30s">30초</option>
+                                    <option value="1m">1분</option>
+                                    <option value="5m">5분</option>
+                                    <option value="10m">10분</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4">
+                                    <input class="form-check-input" type="checkbox" id="auto_install_node_exporter" name="auto_install_node_exporter">
+                                    <label class="form-check-label" for="auto_install_node_exporter">
+                                        서버 생성 시 Node Exporter 자동 설치
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="node_exporter_port" class="form-label">Node Exporter 포트</label>
+                                <input type="number" class="form-control" id="node_exporter_port" name="node_exporter_port" placeholder="9100" min="1024" max="65535">
+                            </div>
+                        </div>
+
+                        <!-- 알림 설정 -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">알림 설정</h5>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="enable_alerts" name="enable_alerts">
+                                    <label class="form-check-label" for="enable_alerts">
+                                        알림 활성화
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="alert_email" class="form-label">알림 이메일</label>
+                                <input type="email" class="form-control" id="alert_email" name="alert_email" placeholder="admin@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cpu_warning_threshold" class="form-label">CPU 경고 임계값 (%)</label>
+                                <input type="number" class="form-control" id="cpu_warning_threshold" name="cpu_warning_threshold" placeholder="80" min="0" max="100">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cpu_critical_threshold" class="form-label">CPU 위험 임계값 (%)</label>
+                                <input type="number" class="form-control" id="cpu_critical_threshold" name="cpu_critical_threshold" placeholder="95" min="0" max="100">
+                            </div>
+                        </div>
+
+                        <!-- 버튼 -->
+                        <div class="row">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> 설정 저장
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="loadConfig()">
+                                    <i class="fas fa-refresh"></i> 설정 새로고침
+                                </button>
+                                <button type="button" class="btn btn-info" onclick="testConnection()">
+                                    <i class="fas fa-plug"></i> 연결 테스트
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // 설정 로드
+    loadConfig();
+    
+    // 폼 제출 이벤트
+    $('#monitoring-config-form').on('submit', function(e) {
+        e.preventDefault();
+        saveConfig();
+    });
+});
+
+function loadConfig() {
+    $.getJSON('/monitoring/config')
+        .then(function(response) {
+            if (response.success) {
+                const config = response.data;
+                
+                // Grafana 설정
+                $('#grafana_url').val(config.grafana.base_url);
+                $('#grafana_username').val(config.grafana.username);
+                $('#grafana_password').val(config.grafana.password);
+                $('#org_id').val(config.grafana.org_id);
+                $('#dashboard_uid').val(config.grafana.dashboard_uid);
+                $('#auto_refresh').val(config.grafana.auto_refresh);
+                $('#anonymous_access').prop('checked', config.grafana.anonymous_access);
+                
+                // Prometheus 설정
+                $('#prometheus_url').val(config.prometheus.url);
+                $('#prometheus_username').val(config.prometheus.username);
+                
+                // 모니터링 설정
+                $('#default_time_range').val(config.monitoring.default_time_range);
+                $('#health_check_interval').val(config.monitoring.health_check_interval);
+                $('#auto_install_node_exporter').prop('checked', config.monitoring.auto_install_node_exporter);
+                $('#node_exporter_port').val(config.monitoring.node_exporter_port);
+                
+                // 알림 설정
+                $('#enable_alerts').prop('checked', config.alerts.enable_alerts);
+                $('#alert_email').val(config.alerts.alert_email);
+                $('#cpu_warning_threshold').val(config.alerts.cpu_warning_threshold);
+                $('#cpu_critical_threshold').val(config.alerts.cpu_critical_threshold);
+                
+                console.log('설정 로드 완료');
+            }
+        })
+        .catch(function(error) {
+            console.error('설정 로드 실패:', error);
+            alert('설정을 로드할 수 없습니다.');
+        });
+}
+
+function saveConfig() {
+    const formData = {
+        GRAFANA: {
+            grafana_url: $('#grafana_url').val(),
+            grafana_username: $('#grafana_username').val(),
+            grafana_password: $('#grafana_password').val(),
+            org_id: $('#org_id').val(),
+            dashboard_uid: $('#dashboard_uid').val(),
+            auto_refresh: $('#auto_refresh').val(),
+            anonymous_access: $('#anonymous_access').is(':checked')
+        },
+        PROMETHEUS: {
+            prometheus_url: $('#prometheus_url').val(),
+            prometheus_username: $('#prometheus_username').val()
+        },
+        MONITORING: {
+            default_time_range: $('#default_time_range').val(),
+            health_check_interval: $('#health_check_interval').val(),
+            auto_install_node_exporter: $('#auto_install_node_exporter').is(':checked'),
+            node_exporter_port: $('#node_exporter_port').val()
+        },
+        ALERTS: {
+            enable_alerts: $('#enable_alerts').is(':checked'),
+            alert_email: $('#alert_email').val(),
+            cpu_warning_threshold: $('#cpu_warning_threshold').val(),
+            cpu_critical_threshold: $('#cpu_critical_threshold').val()
+        }
+    };
+    
+    $.ajax({
+        url: '/monitoring/config',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            if (response.success) {
+                alert('설정이 저장되었습니다.');
+                loadConfig(); // 설정 새로고침
+            } else {
+                alert('설정 저장에 실패했습니다: ' + response.error);
+            }
+        },
+        error: function() {
+            alert('설정 저장 중 오류가 발생했습니다.');
+        }
+    });
+}
+
+function testConnection() {
+    alert('연결 테스트 기능은 향후 구현 예정입니다.');
+}
+</script>

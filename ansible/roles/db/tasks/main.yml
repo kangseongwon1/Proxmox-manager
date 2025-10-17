@@ -1,0 +1,50 @@
+---
+- name: Add MariaDB 10.11 repository (Debian/Ubuntu)
+  ansible.builtin.apt_key:
+    url: https://mariadb.org/mariadb_release_signing_key.asc
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Add MariaDB repository (Debian/Ubuntu)
+  ansible.builtin.apt_repository:
+    repo: 'deb [arch=amd64] http://mirror.yongbok.net/mariadb/repo/10.11/ubuntu focal main'
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Install MariaDB server (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: mariadb-server
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install MariaDB server (RedHat/Rocky/CentOS)
+  ansible.builtin.package:
+    name: mariadb-server
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Ensure MariaDB is running
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure MariaDB is running (RedHat/Rocky/CentOS)
+  ansible.builtin.service:
+    name: mariadb
+    state: started
+    enabled: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Set root password and authentication (Debian/Ubuntu)
+  ansible.builtin.mysql_user:
+    name: root
+    host: localhost
+    password: 'dmc1234!'
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    check_implicit_admin: yes
+    state: present
+    update_password: always
+  when: ansible_os_family == "Debian" 

@@ -1,0 +1,54 @@
+---
+- name: Install OpenJDK 11 (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: openjdk-11-jdk
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install OpenJDK 11 (RedHat/Rocky/CentOS)
+  ansible.builtin.yum:
+    name: java-11-openjdk-devel
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Set JAVA_HOME in /etc/profile.d/java.sh
+  ansible.builtin.copy:
+    dest: /etc/profile.d/java.sh
+    content: |
+      export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+      export PATH=$JAVA_HOME/bin:$PATH
+    mode: '0644'
+
+- name: Install Maven (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: maven
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install Maven (RedHat/Rocky/CentOS)
+  ansible.builtin.yum:
+    name: maven
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: /opt/app
+    state: directory
+    mode: '0755'
+    owner: root
+    group: root
+
+- name: Set environment variables
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    line: "{{ item }}"
+    state: present
+  loop:
+    - "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+    - "MAVEN_HOME=/usr/share/maven"
+    - "SPRING_PROFILES_ACTIVE={{ spring_profile | default('production') }}" 

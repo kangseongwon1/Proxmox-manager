@@ -1,0 +1,258 @@
+# ========================================
+# Proxmox 서버 자동 생성 시스템 환경 설정 (보안 강화 버전)
+# ========================================
+# 이 파일을 .env로 복사한 후 실제 값으로 수정하세요.
+# cp env_template.txt .env
+
+# ========================================
+# Flask 애플리케이션 설정
+# ========================================
+
+# Flask 시크릿 키 (필수) - 랜덤한 문자열로 변경하세요
+SECRET_KEY=your-super-secret-key-here-change-this
+
+# Flask 환경 설정
+FLASK_ENV=development
+DEBUG=true
+
+# ========================================
+# Proxmox 서버 설정 (필수)
+# ========================================
+
+# Proxmox 서버 주소 (예: https://192.168.1.100:8006)
+PROXMOX_ENDPOINT=https://prox.xxxxx.co.kr:8006
+
+# Proxmox 사용자명 (예: root@pam)
+PROXMOX_USERNAME=root@pam
+
+# Proxmox 비밀번호 (Vault에서 관리 권장)
+PROXMOX_PASSWORD="xxxxxxxxxxxxxxxxxxxx"
+
+# Proxmox 노드명 (예: pve)
+PROXMOX_NODE=prox
+
+# Proxmox 데이터스토어 (예: local-lvm)
+PROXMOX_DATASTORE=local-lvm
+
+# 템플릿 VM ID (예: 9000)
+PROXMOX_TEMPLATE_ID=8000
+
+# ========================================
+# VM 설정
+# ========================================
+
+# VM 기본 사용자명
+VM_USERNAME=rocky
+
+# VM 기본 비밀번호 (Vault에서 관리 권장)
+VM_PASSWORD=rocky123
+
+# ========================================
+# Vault 설정 (보안 강화)
+# ========================================
+
+# Vault 서버 주소
+VAULT_ADDR=http://127.0.0.1:8200
+
+# Vault 토큰 (개발용 - 프로덕션에서는 적절한 토큰 사용)
+VAULT_TOKEN=root
+
+# Vault 사용 여부
+USE_VAULT=true
+
+# ========================================
+# 데이터베이스 자격증명 (Vault에서 관리 권장)
+# ========================================
+
+# MySQL 루트 비밀번호
+MYSQL_ROOT_PASSWORD=your-mysql-root-password
+
+# MySQL 사용자 비밀번호
+MYSQL_USER_PASSWORD=your-mysql-user-password
+
+# ========================================
+# FTP 자격증명 (Vault에서 관리 권장)
+# ========================================
+
+# FTP 비밀번호
+FTP_PASSWORD=your-ftp-password
+
+# ========================================
+# 모니터링 설정
+# ========================================
+
+# Grafana 설정
+GRAFANA_URL=http://192.168.0.253:3000
+GRAFANA_USERNAME=admin
+GRAFANA_PASSWORD=admin
+GRAFANA_ORG_ID=1
+GRAFANA_DASHBOARD_UID=system_monitoring
+GRAFANA_DASHBOARD_ID=2
+GRAFANA_DASHBOARD_URL=/d/system_monitoring/system-monitoring-dashboard-10-servers
+GRAFANA_ANONYMOUS_ACCESS=true
+GRAFANA_AUTO_REFRESH=5s
+
+# Prometheus 설정
+PROMETHEUS_URL=http://192.168.0.253:9090
+PROMETHEUS_USERNAME=
+PROMETHEUS_PASSWORD=
+
+# ========================================
+# 세션 보안 설정
+# ========================================
+
+# HTTPS 사용 여부 (개발환경에서는 false)
+SESSION_COOKIE_SECURE=false
+
+# HTTP 전용 쿠키 (보안 강화)
+SESSION_COOKIE_HTTPONLY=true
+
+# SameSite 쿠키 정책
+SESSION_COOKIE_SAMESITE=Strict
+
+# 세션 유지 시간 (초)
+PERMANENT_SESSION_LIFETIME=3600
+
+# ========================================
+# 로깅 설정
+# ========================================
+
+# 로그 레벨 (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
+# 로그 파일 경로
+LOG_FILE=app.log
+
+# ========================================
+# SSH 설정
+# ========================================
+
+# SSH 개인키 경로
+SSH_PRIVATE_KEY_PATH=~/.ssh/id_rsa
+
+# SSH 공개키 경로
+SSH_PUBLIC_KEY_PATH=~/.ssh/id_rsa.pub
+
+# SSH 사용자명 (VM 접속용)
+SSH_USER=rocky
+
+# ========================================
+# 추가 설정 (선택사항)
+# ========================================
+
+# 데이터베이스 경로
+DATABASE_PATH=proxmox_manager.db
+
+# 최대 동시 작업 수
+MAX_CONCURRENT_TASKS=5
+
+# 작업 타임아웃 (초)
+TASK_TIMEOUT=300
+
+# ========================================
+# 개발 환경 설정
+# ========================================
+
+# 개발 모드 활성화
+DEVELOPMENT_MODE=true
+
+# 자동 리로드 활성화
+AUTO_RELOAD=true
+
+# 디버그 모드 활성화
+DEBUG_MODE=true
+
+# ========================================
+# 보안 설정
+# ========================================
+
+# 비밀번호 최소 길이
+MIN_PASSWORD_LENGTH=8
+
+# 비밀번호 복잡도 요구사항
+REQUIRE_PASSWORD_COMPLEXITY=true
+
+# 로그인 시도 제한
+MAX_LOGIN_ATTEMPTS=5
+
+# 계정 잠금 시간 (분)
+ACCOUNT_LOCKOUT_DURATION=30
+
+# ========================================
+# Vault Docker 설정 (선택사항)
+# ========================================
+
+# Vault 사용 여부
+USE_VAULT=true
+
+# Vault 서버 주소 (Docker 컨테이너)
+VAULT_ADDR=http://127.0.0.1:8200
+
+# Vault 토큰 (개발 모드용)
+VAULT_TOKEN=root
+
+# ========================================
+# Ansible 설정 (통합 관리)
+# ========================================
+
+# MySQL 관련 보안 변수 (Ansible에서 사용)
+ANSIBLE_MYSQL_ROOT_PASSWORD=your_secure_mysql_root_password
+ANSIBLE_MYSQL_USER_PASSWORD=your_secure_mysql_user_password
+ANSIBLE_MYSQL_REPLICATION_PASSWORD=your_secure_replication_password
+
+# FTP 관련 보안 변수 (Ansible에서 사용)
+ANSIBLE_FTP_PASSWORD=your_secure_ftp_password
+
+# Tomcat Manager 관련 보안 변수 (Ansible에서 사용)
+ANSIBLE_TOMCAT_MANAGER_PASSWORD=your_secure_tomcat_manager_password
+
+# Node Exporter 자동 설치 설정
+NODE_EXPORTER_AUTO_INSTALL=true
+
+# Prometheus 설정
+PROMETHEUS_RETENTION=30d
+
+# 백업 설정
+BACKUP_ENABLED=true
+BACKUP_COMPRESSION=true
+
+# 로그 설정
+LOG_RETENTION_DAYS=30
+
+# 성능 설정
+NGINX_WORKER_PROCESSES=auto
+NGINX_WORKER_CONNECTIONS=1024
+MYSQL_MAX_CONNECTIONS=200
+TOMCAT_HEAP_SIZE=1024m
+
+# 보안 설정
+FIREWALL_ENABLED=true
+SSH_PERMIT_ROOT_LOGIN=false
+SSL_ENABLED=false
+
+# ========================================
+# 백업 설정 (통합)
+# ========================================
+
+# 백업 저장 경로
+BACKUP_PATH=/var/backups/proxmox
+
+# 백업 보존 기간 (일) - 위의 BACKUP_RETENTION_DAYS와 동일
+# BACKUP_RETENTION_DAYS=30  # 위에서 이미 설정됨
+
+# 백업 암호화 여부
+ENCRYPT_BACKUPS=true
+
+# ========================================
+# 알림 설정
+# ========================================
+
+# 이메일 알림 설정
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_USE_TLS=true
+
+# 알림 수신자
+NOTIFICATION_RECIPIENTS=admin@example.com,ops@example.com

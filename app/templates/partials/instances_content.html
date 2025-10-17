@@ -1,0 +1,677 @@
+<div class="main-content">
+  <div class="instances-panel">
+    <h3><i class="fas fa-server me-2"></i>서버 관리</h3>
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>서버 관리</h4>
+      </div>
+      <div class="card-body">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="serverTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
+              <i class="fas fa-plus me-1"></i>서버 생성
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab">
+              <i class="fas fa-list me-1"></i>서버 목록
+            </button>
+          </li>
+        </ul>
+        <!-- Tab Content -->
+        <div class="tab-content" id="serverTabsContent">
+          <!-- Create Server Tab -->
+          <div class="tab-pane fade" id="create" role="tabpanel">
+            {% if 'create_server' in session['permissions'] %}
+            <form id="create-server-form">
+              <!-- 서버 생성 모드 카드형 선택 UI -->
+              <div class="mb-4">
+                <label class="form-label fw-bold">서버 생성 모드</label>
+                <div class="d-flex gap-3" id="server-mode-group">
+                  <div class="mode-card active" data-mode="single">
+                    <i class="fas fa-server fa-2x mb-2"></i>
+                    <div>단일 서버</div>
+                  </div>
+                  <div class="mode-card" data-mode="multi">
+                    <i class="fas fa-layer-group fa-2x mb-2"></i>
+                    <div>다중 서버</div>
+                  </div>
+                </div>
+                <input type="hidden" id="server_mode" name="server_mode" value="single">
+              </div>
+              <!-- 다중 서버 옵션 (기본 숨김) -->
+              <div id="multi-server-options" style="display:none; margin-bottom:24px;">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-3">
+                    <label class="form-label">서버 개수</label>
+                    <input type="number" id="multi-server-count" class="form-control" min="2" max="20" value="2">
+                  </div>
+                  <div class="col-md-9 text-muted small d-flex align-items-end">
+                    <i class="fas fa-info-circle me-1"></i>서버명은 입력한 이름에 -1, -2 ...가 자동으로 붙습니다.
+                  </div>
+                </div>
+              </div>
+              <!-- 카드형 UI용 임시 스타일 -->
+              <style>
+              #server-mode-group { user-select: none; }
+              .mode-card {
+                border: 2px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 24px 32px;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                background: #fafbfc;
+                min-width: 120px;
+                font-size: 1.1rem;
+              }
+              .mode-card.active {
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px #007bff33;
+                background: #eaf4ff;
+                color: #007bff;
+              }
+              .mode-card i {
+                display: block;
+                margin-bottom: 8px;
+              }
+              </style>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">서버 이름</label>
+                  <input type="text" class="form-control" name="name_basic" placeholder="예: my-server-01" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">OS 선택</label>
+                  <select id="os-select" class="form-select" name="os">
+                    <option value="">OS를 선택하세요</option>
+                    <option value="ubuntu">Ubuntu 20.04 (Template ID: 9000)</option>
+                    <option value="rocky">Rocky Linux 8 (Template ID: 8000)</option>
+                    <option value="centos">CentOS 8 (Template ID: 8001)</option>
+                    <option value="debian">Debian 11 (Template ID: 9001)</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">CPU 코어</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" name="cpu_basic" value="2" min="1" max="32">
+                    <span class="input-group-text">코어</span>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">메모리</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" name="memory_basic" value="2048" min="512" step="512">
+                    <span class="input-group-text">MB</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 디스크 설정 -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <label class="form-label mb-0"><i class="fas fa-hdd me-1"></i>디스크 설정</label>
+                  <button type="button" class="btn btn-outline-primary btn-sm add-disk-btn">
+                    <i class="fas fa-plus me-1"></i>디스크 추가
+                  </button>
+                </div>
+                <div class="disk-container" id="disk-container-basic">
+                  <div class="disk-item mb-3">
+                    <div class="row">
+                      <div class="col-md-4">
+                        <label class="form-label">디스크 크기</label>
+                        <div class="input-group">
+                          <input type="number" class="form-control disk-size" value="20" min="1" max="1000">
+                          <span class="input-group-text">GB</span>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">인터페이스</label>
+                        <select class="form-select disk-interface">
+                          <option value="scsi0">SCSI 0</option>
+                          <option value="scsi1">SCSI 1</option>
+                          <option value="scsi2">SCSI 2</option>
+                          <option value="scsi3">SCSI 3</option>
+                          <option value="sata0">SATA 0</option>
+                          <option value="sata1">SATA 1</option>
+                          <option value="virtio0">VirtIO 0</option>
+                          <option value="virtio1">VirtIO 1</option>
+                        </select>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">스토리지 타입</label>
+                        <select class="form-select disk-datastore">
+                          <!-- JavaScript에서 동적으로 생성됨 -->
+                        </select>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-disk-btn">
+                          <i class="fas fa-trash me-1"></i>삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 네트워크 설정 -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <label class="form-label mb-0"><i class="fas fa-network-wired me-1"></i>네트워크 설정</label>
+                  <button type="button" class="btn btn-outline-primary btn-sm add-network-btn">
+                    <i class="fas fa-plus me-1"></i>네트워크 추가
+                  </button>
+                </div>
+                <div class="network-container" id="network-container-basic">
+                  <div class="network-item mb-3">
+                    <div class="row">
+                      <div class="col-md-3">
+                        <label class="form-label">브리지</label>
+                        <select class="form-select network-bridge">
+                          <option value="vmbr0">vmbr0</option>
+                          <option value="vmbr1">vmbr1</option>
+                          <option value="vmbr2">vmbr2</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">IP 주소</label>
+                        <input type="text" class="form-control network-ip" placeholder="192.168.1.100">
+                      </div>
+                      <div class="col-md-2">
+                        <label class="form-label">서브넷</label>
+                        <input type="text" class="form-control network-subnet" placeholder="24" value="24">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">게이트웨이</label>
+                        <input type="text" class="form-control network-gateway" placeholder="192.168.1.1">
+                      </div>
+                      <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-network-btn" disabled>
+                          <i class="fas fa-trash me-1"></i>삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 역할 선택 제거됨: 서버 생성 후 별도 작업으로 처리 -->
+              <div class="text-center mt-4">
+                <div id="creation-status" class="mb-3" style="display: none;">
+                  <div class="d-flex flex-column align-items-center justify-content-center" style="min-height:120px;">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3 text-primary"></i>
+                    <div class="fw-bold" id="status-message">서버 생성 진행 중입니다. 잠시만 기다려주세요...</div>
+                  </div>
+                </div>
+                <button id="create-server-btn" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> 서버 생성</button>
+              </div>
+            </form>
+            {% else %}
+            <div class="alert alert-danger text-center my-5">서버 생성 권한이 없습니다.</div>
+            {% endif %}
+          </div>
+          <!-- Server List Tab -->
+          <div class="tab-pane fade show active" id="list" role="tabpanel">
+            <!-- 서버 목록 헤더 -->
+            <div class="servers-header">
+              <div class="servers-title">
+                <h4><i class="fas fa-server me-2"></i>서버 목록</h4>
+                <span class="server-count badge bg-secondary ms-2" id="server-count">0개</span>
+              </div>
+              <div class="servers-controls">
+                <!-- 검색 바 -->
+                <div class="search-container">
+                  <input type="text" class="form-control search-input" id="server-search" placeholder="서버 검색...">
+                  <i class="fas fa-search search-icon"></i>
+                </div>
+                <!-- 뷰 전환 버튼 제거됨 - 리스트 뷰 전용 -->
+                <!-- 액션 버튼들 -->
+                <div class="servers-actions">
+                  <button class="btn-modern btn-secondary" id="bulk-actions-btn" disabled>
+                    <i class="fas fa-tasks"></i>
+                    <span>일괄 작업</span>
+                  </button>
+                  <button class="btn-modern btn-refresh refresh-btn">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>새로고침</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 대량 작업 도구모음 -->
+            <div class="bulk-actions-toolbar" id="bulk-actions-toolbar">
+              <div class="bulk-actions-info">
+                <i class="fas fa-check-square me-2"></i>
+                <span id="selected-count">0</span>개 서버 선택됨
+              </div>
+              
+              <!-- 탭 네비게이션 -->
+              <div class="bulk-actions-tabs">
+                <button class="bulk-tab-btn active" data-tab="control">
+                  <i class="fas fa-cogs me-1"></i>제어
+                </button>
+                <button class="bulk-tab-btn" data-tab="settings">
+                  <i class="fas fa-wrench me-1"></i>설정
+                </button>
+              </div>
+              
+              <!-- 제어 탭 내용 -->
+              <div class="bulk-tab-content active" id="control-tab">
+              <div class="bulk-actions-buttons">
+                <button class="btn btn-sm" onclick="bulkStartServers()">
+                  <i class="fas fa-play me-1"></i>일괄 시작
+                </button>
+                <button class="btn btn-sm" onclick="bulkStopServers()">
+                  <i class="fas fa-pause me-1"></i>일괄 중지
+                </button>
+                <button class="btn btn-sm" onclick="bulkRebootServers()">
+                  <i class="fas fa-redo me-1"></i>일괄 재시작
+                </button>
+                <button class="btn btn-sm" onclick="bulkDeleteServers()">
+                  <i class="fas fa-trash me-1"></i>일괄 삭제
+                </button>
+                <button class="btn btn-sm" onclick="clearSelection()">
+                  <i class="fas fa-times me-1"></i>선택 해제
+                </button>
+                </div>
+              </div>
+              
+              <!-- 설정 탭 내용 -->
+              <div class="bulk-tab-content" id="settings-tab">
+                <div class="bulk-settings-panel">
+                  <div class="setting-group">
+                    <label class="setting-label">
+                      <i class="fas fa-tag me-1"></i>역할 설정
+                    </label>
+                    <div class="setting-controls">
+                      <select class="form-select form-select-sm" id="bulk-role-select">
+                        <option value="">역할을 선택하세요</option>
+                        <option value="none" class="text-muted">🚫 역할 없음 (해제)</option>
+                        <option value="web">웹서버 (Nginx)</option>
+                        <option value="was">WAS (Tomcat + Python)</option>
+                        <option value="java">Java 서버 (OpenJDK + Maven)</option>
+                        <option value="db">데이터베이스 (MariaDB)</option>
+                        <option value="search">검색엔진 (Elasticsearch)</option>
+                        <option value="ftp">FTP 서버 (vsftpd)</option>
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="executeBulkRoleAssignment()">
+                        <i class="fas fa-check me-1"></i>적용
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div class="setting-group">
+                    <label class="setting-label">
+                      <i class="fas fa-shield-alt me-1"></i>보안그룹 설정
+                    </label>
+                    <div class="setting-controls">
+                      <select class="form-select form-select-sm" id="bulk-security-group-select">
+                        <option value="">보안그룹을 선택하세요</option>
+                        <!-- 보안그룹 옵션은 JavaScript에서 동적으로 로드 -->
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="bulkAssignSecurityGroup()">
+                        <i class="fas fa-check me-1"></i>적용
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <button class="btn btn-sm btn-secondary" onclick="clearSelection()">
+                    <i class="fas fa-times me-1"></i>선택 해제
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 서버 뷰 컨테이너 (리스트 뷰 전용) -->
+            <div class="servers-container">
+              <!-- 카드 뷰 제거됨 - 리스트 뷰만 사용 -->
+
+              <!-- 테이블 뷰 -->
+              <div class="servers-table-container" id="servers-table-container" style="display: none;">
+                <div class="table-responsive">
+                  <table class="table table-hover servers-table" id="servers-table">
+                    <thead>
+                      <tr>
+                        <th class="select-column">
+                          <input type="checkbox" class="form-check-input" id="select-all-servers">
+                        </th>
+                        <th class="sortable server-name-column" data-sort="name">
+                          <i class="fas fa-server me-1"></i>서버명
+                          <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable status-column" data-sort="status">
+                          <i class="fas fa-circle me-1"></i>상태
+                          <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable role-column" data-sort="role">
+                          <i class="fas fa-tag me-1"></i>역할
+                          <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable cpu-column" data-sort="cpu">
+                          <i class="fas fa-microchip me-1"></i>CPU
+                          <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="sortable memory-column" data-sort="memory">
+                          <i class="fas fa-memory me-1"></i>메모리
+                          <i class="fas fa-sort sort-icon"></i>
+                        </th>
+                        <th class="ip-column">
+                          <i class="fas fa-network-wired me-1"></i>IP 주소
+                        </th>
+                        <th class="security-column">
+                          <i class="fas fa-shield-virus me-1"></i>Security Group
+                        </th>
+                        <th class="actions-column">
+                          <i class="fas fa-cogs me-1"></i>액션
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <!-- 테이블 데이터는 JavaScript에서 동적으로 생성 -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 서버 설정 모달 -->
+<div class="modal fade" id="server-config-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">서버 설정</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="server-config-form">
+          <div class="row">
+            <div class="col-md-6">
+              <h6>기본 정보</h6>
+              <div class="mb-3">
+                <label class="form-label">서버 이름</label>
+                <input type="text" class="form-control" id="server-name" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">VM ID</label>
+                <input type="text" class="form-control" id="server-vmid" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">노드</label>
+                <input type="text" class="form-control" id="server-node" readonly>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">상태</label>
+                <input type="text" class="form-control" id="server-status" readonly>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6>역할 및 보안</h6>
+              <div class="mb-3">
+                <label class="form-label">역할</label>
+                <select class="form-select" id="server-role">
+                  <option value="">역할 없음</option>
+                  <option value="web">웹서버</option>
+                  <option value="was">WAS</option>
+                  <option value="db">데이터베이스</option>
+                  <option value="java">Java</option>
+                  <option value="search">검색</option>
+                  <option value="ftp">FTP</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">방화벽 그룹</label>
+                <select class="form-select" id="server-firewall-group">
+                  <option value="">그룹 없음</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">설명</label>
+                <textarea class="form-control" id="server-description" rows="2"></textarea>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">태그</label>
+                <input type="text" class="form-control" id="server-tags" placeholder="태그1,태그2,태그3">
+              </div>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6">
+              <h6>CPU 설정</h6>
+              <div class="mb-3">
+                <label class="form-label">코어 수</label>
+                <input type="number" class="form-control" id="cpu-cores" min="1" max="32">
+                <small class="form-text text-muted">⚠️ CPU 코어 수 변경 시 서버 중지 후 재시작이 필요합니다.</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">소켓 수</label>
+                <input type="number" class="form-control" id="cpu-sockets" min="1" max="4">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">CPU 타입</label>
+                <select class="form-select" id="cpu-type">
+                  <option value="host">Host</option>
+                  <option value="kvm64">KVM64</option>
+                  <option value="qemu64">QEMU64</option>
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <h6>메모리 설정</h6>
+              <div class="mb-3">
+                <label class="form-label">메모리 크기 (MB)</label>
+                <input type="number" class="form-control" id="memory-size" min="512" step="512">
+                <small class="form-text text-muted">⚠️ 메모리 크기 변경 시 서버 중지 후 재시작이 필요합니다.</small>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Balloon 메모리 (MB)</label>
+                <input type="number" class="form-control" id="memory-balloon" min="0" step="512">
+              </div>
+            </div>
+          </div>
+          
+          <!-- 하드디스크 관리 섹션 -->
+          <div class="row">
+            <div class="col-12">
+              <h6>하드디스크 관리</h6>
+              <div class="mb-3">
+                <label class="form-label">현재 디스크</label>
+                <div id="disk-list" class="border rounded p-3 mb-2" style="max-height: 200px; overflow-y: auto;">
+                  <!-- 디스크 목록이 여기에 동적으로 로드됩니다 -->
+                </div>
+              </div>
+              
+              <!-- 새 디스크 추가 -->
+              <div class="mb-3">
+                <label class="form-label">새 디스크 추가</label>
+                <div class="row">
+                  <div class="col-md-2">
+                    <select class="form-select" id="new-disk-type">
+                      <option value="scsi">SCSI</option>
+                      <option value="sata">SATA</option>
+                      <option value="virtio">VirtIO</option>
+                    </select>
+                  </div>
+                  <div class="col-md-2">
+                    <input type="number" class="form-control" id="new-disk-number" placeholder="번호" min="0" max="15">
+                    <small class="form-text text-muted">예: 0, 1, 2...</small>
+                  </div>
+                  <div class="col-md-3">
+                    <select class="form-select" id="new-disk-storage">
+                      <option value="local">local</option>
+                      <option value="local-lvm">local-lvm</option>
+                      <option value="ssd">ssd</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <input type="number" class="form-control" id="new-disk-size" placeholder="크기(GB)" min="1" max="1000" value="20">
+                  </div>
+                  <div class="col-md-2">
+                    <button type="button" class="btn btn-success btn-sm" onclick="addNewDisk()">
+                      <i class="fas fa-plus"></i> 추가
+                    </button>
+                  </div>
+                </div>
+                <small class="form-text text-muted">⚠️ 디스크 변경 시 서버 중지 후 재시작이 필요합니다.</small>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary" onclick="saveServerConfig()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 로그 타입 선택 모달 -->
+<div class="modal fade" id="log-type-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">로그 보기</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="log-server-name">
+        <div class="mb-3">
+          <label class="form-label">정보 타입</label>
+          <select class="form-select" id="log-type-select">
+            <option value="system">시스템 정보</option>
+            <option value="dmesg">상태 정보</option>
+            <option value="auth">인증 정보</option>
+            <option value="nginx">네트워크 정보</option>
+            <option value="mysql">리소스 정보</option>
+            <option value="custom">상세 정보</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">라인 수</label>
+          <input type="number" class="form-control" id="log-lines" value="100" min="10" max="1000">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary" onclick="loadServerLogs()">로그 조회</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 로그 내용 모달 -->
+<div class="modal fade" id="log-content-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">로그 내용</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <small class="text-muted" id="log-timestamp"></small>
+        </div>
+        <pre id="log-content" style="max-height: 500px; overflow-y: auto; background-color: #f8f9fa; padding: 15px; border-radius: 5px; font-size: 12px;"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 백업 생성 모달 -->
+<div class="modal fade" id="backup-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">서버 백업 생성</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="backup-server-name">
+        <div class="mb-3">
+          <label class="form-label">백업 설명</label>
+          <textarea class="form-control" id="backup-description" rows="2" placeholder="백업 파일에 포함될 설명을 입력하세요 (선택사항)"></textarea>
+          <small class="form-text text-muted">백업 파일의 용도나 특별한 사항을 기록할 수 있습니다.</small>
+        </div>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">스토리지</label>
+              <select class="form-select" id="backup-storage">
+                <option value="local">local</option>
+                <option value="local-lvm">local-lvm</option>
+                <option value="ssd">ssd</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label class="form-label">압축 방식</label>
+              <select class="form-select" id="backup-compress">
+                <option value="zstd">zstd (권장)</option>
+                <option value="gzip">gzip</option>
+                <option value="lz4">lz4</option>
+                <option value="0">압축 없음</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">백업 모드</label>
+          <select class="form-select" id="backup-mode">
+            <option value="snapshot">스냅샷 (권장)</option>
+            <option value="suspend">일시 중지</option>
+            <option value="stop">중지</option>
+          </select>
+          <small class="form-text text-muted">
+            <strong>스냅샷:</strong> 서버를 중지하지 않고 백업 (권장)<br>
+            <strong>일시 중지:</strong> 백업 중 서버를 일시 중지<br>
+            <strong>중지:</strong> 백업 중 서버를 완전히 중지
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="button" class="btn btn-primary" onclick="createServerBackup()">백업 생성</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 백업 목록 모달 -->
+<div class="modal fade" id="backup-list-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">백업 파일 목록</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>백업 파일명</th>
+                <th>저장 위치</th>
+                <th>생성 시간</th>
+                <th>파일 크기</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="backup-list-tbody">
+              <!-- 동적으로 로드됨 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div> 

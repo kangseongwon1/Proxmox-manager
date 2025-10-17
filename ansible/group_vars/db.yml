@@ -1,0 +1,40 @@
+# 데이터베이스 서버 전용 변수
+# db 역할을 가진 서버들에만 적용
+
+# === MySQL 기본 설정 ===
+mysql_root_password: "{{ ansible_mysql_root_password | default('root1234') }}"
+mysql_database: "app_db"
+mysql_user: "app_user"
+mysql_user_password: "{{ ansible_mysql_user_password | default('app1234') }}"
+mysql_port: 3306
+mysql_bind_address: "0.0.0.0"
+
+# === MySQL 성능 설정 ===
+mysql_max_connections: 200
+mysql_query_cache_size: "64M"
+mysql_innodb_buffer_pool_size: "256M"
+mysql_innodb_log_file_size: "64M"
+mysql_slow_query_log: true
+mysql_long_query_time: 2
+
+# === 백업 설정 ===
+mysql_backup_enabled: true
+mysql_backup_path: "/var/backups/mysql"
+mysql_backup_retention_days: 7
+mysql_backup_compression: true
+
+# === 복제 설정 ===
+mysql_replication_enabled: false
+mysql_master_host: ""
+mysql_slave_user: "replication"
+mysql_slave_password: "{{ ansible_mysql_replication_password | default('repl1234') }}"
+
+# === 성능 튜닝 ===
+mysql_optimize_tables: true
+mysql_analyze_tables: true
+mysql_cleanup_logs: true
+
+# === 보안 설정 ===
+mysql_remove_anonymous_users: true
+mysql_remove_test_database: true
+mysql_secure_installation: true

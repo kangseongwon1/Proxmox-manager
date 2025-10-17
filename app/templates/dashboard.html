@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - Proxmox Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1><i class="fas fa-tachometer-alt"></i> 대시보드</h1>
+        <p class="text-muted">시스템 현황을 한눈에 확인하세요.</p>
+        
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card text-white bg-primary mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-server"></i> 전체 서버
+                        </h5>
+                        <p class="card-text display-6">{{ servers|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-play"></i> 실행 중
+                        </h5>
+                        <p class="card-text display-6">{{ servers|selectattr('status', 'equalto', 'running')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-pause"></i> 중지됨
+                        </h5>
+                        <p class="card-text display-6">{{ servers|selectattr('status', 'equalto', 'stopped')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fas fa-clock"></i> 대기 중
+                        </h5>
+                        <p class="card-text display-6">{{ servers|selectattr('status', 'equalto', 'pending')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list"></i> 서버 목록</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if servers %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>이름</th>
+                                        <th>상태</th>
+                                        <th>역할</th>
+                                        <th>CPU</th>
+                                        <th>메모리</th>
+                                        <th>IP 주소</th>
+                                        <th>작업</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for server in servers %}
+                                    <tr>
+                                        <td>{{ server.name }}</td>
+                                        <td>
+                                            {% if server.status == 'running' %}
+                                            <span class="badge bg-success">실행 중</span>
+                                            {% elif server.status == 'stopped' %}
+                                            <span class="badge bg-warning">중지됨</span>
+                                            {% elif server.status == 'pending' %}
+                                            <span class="badge bg-info">대기 중</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ server.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ server.role or 'N/A' }}</td>
+                                        <td>{{ server.cpu or 'N/A' }}</td>
+                                        <td>{{ server.memory_gb or 'N/A' }} GB</td>
+                                        <td>{{ server.ip_address or 'N/A' }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                {% if server.status == 'running' %}
+                                                <button class="btn btn-sm btn-warning" onclick="stopServer({{ server.id }})">
+                                                    <i class="fas fa-stop"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-info" onclick="rebootServer({{ server.id }})">
+                                                    <i class="fas fa-redo"></i>
+                                                </button>
+                                                {% elif server.status == 'stopped' %}
+                                                <button class="btn btn-sm btn-success" onclick="startServer({{ server.id }})">
+                                                    <i class="fas fa-play"></i>
+                                                </button>
+                                                {% endif %}
+                                                <button class="btn btn-sm btn-danger" onclick="deleteServer({{ server.id }})">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-server fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">등록된 서버가 없습니다</h5>
+                            <p class="text-muted">새 서버를 생성해보세요.</p>
+                            <a href="{{ url_for('servers.create') }}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> 서버 생성
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function startServer(serverId) {
+            if (confirm('서버를 시작하시겠습니까?')) {
+                fetch(`/servers/${serverId}/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('오류가 발생했습니다.');
+                    }
+                });
+            }
+        }
+
+        function stopServer(serverId) {
+            if (confirm('서버를 중지하시겠습니까?')) {
+                fetch(`/servers/${serverId}/stop`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('오류가 발생했습니다.');
+                    }
+                });
+            }
+        }
+
+        function rebootServer(serverId) {
+            if (confirm('서버를 재부팅하시겠습니까?')) {
+                fetch(`/servers/${serverId}/reboot`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('오류가 발생했습니다.');
+                    }
+                });
+            }
+        }
+
+        function deleteServer(serverId) {
+            if (confirm('서버를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+                fetch(`/servers/${serverId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('오류가 발생했습니다.');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,32 @@
+# 기존 운영 서버들 (SSH 포트 20222)
+[operational_servers]
+192.168.0.111
+192.168.0.112
+192.168.0.113
+192.168.0.114
+192.168.0.115
+192.168.0.116
+192.168.0.117
+192.168.0.118
+192.168.0.119
+
+# 운영 서버 공통 설정
+[operational_servers:vars]
+ansible_user=rocky
+ansible_port=20222
+ansible_ssh_private_key_file=~/.ssh/id_rsa
+ansible_host_key_checking=False
+ansible_os_family=RedHat
+ansible_python_interpreter=/usr/bin/python3
+
+# 모니터링 대상 서버들 (운영 서버 중에서)
+[monitoring_targets]
+192.168.0.111
+192.168.0.112
+192.168.0.113
+192.168.0.114
+192.168.0.115
+192.168.0.116
+192.168.0.117
+192.168.0.118
+192.168.0.119

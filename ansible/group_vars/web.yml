@@ -1,0 +1,32 @@
+# 웹 서버 전용 변수
+# web 역할을 가진 서버들에만 적용
+
+# === Nginx 기본 설정 ===
+nginx_user: "www-data"
+nginx_port: 80
+nginx_worker_processes: "auto"
+nginx_worker_connections: 1024
+nginx_keepalive_timeout: 65
+nginx_gzip_enabled: true
+nginx_gzip_types: "text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript"
+
+# === SSL/TLS 설정 ===
+ssl_enabled: false
+ssl_cert_path: "/etc/ssl/certs/nginx.crt"
+ssl_key_path: "/etc/ssl/private/nginx.key"
+
+# === 로드 밸런싱 설정 ===
+upstream_servers: []
+load_balancer_method: "round_robin"
+
+# === 캐싱 설정 ===
+cache_enabled: true
+cache_path: "/var/cache/nginx"
+cache_size: "1g"
+cache_valid_time: "1h"
+
+# === 보안 헤더 설정 ===
+security_headers_enabled: true
+x_frame_options: "DENY"
+x_content_type_options: "nosniff"
+x_xss_protection: "1; mode=block"

@@ -1,0 +1,64 @@
+
+# YoYo AI version control directory
+.yoyo/
+
+
+# Flask
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+instance/proxmox_manager.db
+
+# Logs
+*.log
+logs/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars.json
+
+# Secrets
+*.key
+*.pem
+secrets/
+env-dev-template.txt
+.ssh
+.ssh/*
+
+# Vault (Development)
+vault_data/
+vault_logs/
+vault_backups/
+vault_token.txt
+unseal_keys.txt
+.env.tokens
+vault-dev-manager.sh
+secure-input.sh
+vault_backup.sh
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+

@@ -1,0 +1,33 @@
+# 모든 서버에 적용되는 공통 변수만
+# 역할별 변수는 각각의 group_vars 파일에서 관리
+
+# === 공통 시스템 변수 ===
+timezone: "Asia/Seoul"
+locale: "ko_KR.UTF-8"
+
+# === 보안 관련 변수 ===
+firewall_enabled: true
+ssh_port: 22
+ssh_permit_root_login: false
+ssh_password_authentication: true
+selinux_enabled: false
+
+# === 로그 관련 변수 ===
+log_level: "info"
+log_retention_days: 30
+
+# === 백업 관련 변수 ===
+backup_enabled: true
+backup_retention_days: 7
+backup_schedule: "0 2 * * *"  # 매일 새벽 2시
+
+# === 모니터링 관련 변수 ===
+monitoring_enabled: true
+node_exporter_version: "1.6.1"
+node_exporter_port: 9100
+node_exporter_user: "node_exporter"
+
+# === Ansible 연결 변수 ===
+ansible_user: "rocky"
+ansible_ssh_private_key_file: "~/.ssh/id_rsa"
+proxmox_endpoint: "https://prox.dmcmedia.co.kr:8006"

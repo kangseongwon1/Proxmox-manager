@@ -1,0 +1,98 @@
+# Proxmox Manager 환경 변수 설정
+# 이 파일을 편집하여 실제 값으로 변경한 후, .env 파일로 복사하세요.
+
+# Proxmox 설정
+PROXMOX_ENDPOINT=https://:8006
+PROXMOX_USERNAME=
+PROXMOX_PASSWORD=
+PROXMOX_NODE=
+PROXMOX_TEMPLATE_ID=
+
+# Datastore 설정 (초기 기본값, 이후 DB에서 관리)
+PROXMOX_HDD_DATASTORE=local-lvm
+PROXMOX_SSD_DATASTORE=local
+SESSION_COOKIE_SECURE=false
+SESSION_COOKIE_HTTPONLY=true
+SESSION_COOKIE_SAMESITE=Strict
+PERMANENT_SESSION_LIFETIME=3600
+
+
+# SSH 설정은 Vault에서 관리됩니다
+
+# Vault 설정
+VAULT_ADDR=http://localhost:8200
+VAULT_TOKEN=
+
+# 데이터베이스 설정
+DATABASE_PATH=proxmox_manager.db
+
+# Flask 설정
+FLASK_ENV=development
+SECRET_KEY=your-secret-key-here
+
+# Terraform 변수 (자동 매핑용)
+TF_VAR_vault_token=
+TF_VAR_vault_address=
+TF_VAR_proxmox_endpoint=https://:8006
+TF_VAR_proxmox_username=
+TF_VAR_proxmox_password=
+TF_VAR_proxmox_node=
+TF_VAR_vm_username=
+TF_VAR_ssh_keys=
+
+# Grafana 설정
+GRAFANA_URL=http://:3000
+GRAFANA_USERNAME=admin
+GRAFANA_PASSWORD=admin123
+GRAFANA_ORG_ID=1
+GRAFANA_DASHBOARD_UID=system_monitoring
+GRAFANA_DASHBOARD_ID=2
+GRAFANA_DASHBOARD_URL=/d/system_monitoring/system-monitoring-dashboard-10-servers
+GRAFANA_ANONYMOUS_ACCESS=true
+GRAFANA_AUTO_REFRESH=5s
+
+# Prometheus 설정
+PROMETHEUS_URL=http://:9090
+PROMETHEUS_USERNAME=
+PROMETHEUS_PASSWORD=
+
+# 모니터링 설정
+MONITORING_DEFAULT_TIME_RANGE=1h
+MONITORING_HEALTH_CHECK_INTERVAL=30s
+MONITORING_PING_TIMEOUT=5s
+MONITORING_SSH_TIMEOUT=10s
+NODE_EXPORTER_AUTO_INSTALL=true
+NODE_EXPORTER_PORT=9100
+NODE_EXPORTER_VERSION=1.6.1
+
+# 알림 설정
+ALERTS_ENABLED=true
+ALERTS_EMAIL=admin@example.com
+ALERTS_CPU_WARNING_THRESHOLD=80
+ALERTS_CPU_CRITICAL_THRESHOLD=95
+ALERTS_MEMORY_WARNING_THRESHOLD=85
+ALERTS_MEMORY_CRITICAL_THRESHOLD=95
+
+# 보안 설정
+SECURITY_ENABLE_HTTPS=false
+SECURITY_ENABLE_AUTH=true
+SECURITY_SESSION_TIMEOUT=3600
+SECURITY_MAX_LOGIN_ATTEMPTS=5
+
+# Redis 설정
+REDIS_ENABLED=false
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+REDIS_PASSWORD=
+
+# Terraform 설정 (선택사항)
+# 기본값: 로컬 실행
+TERRAFORM_REMOTE_ENABLED=false
+# TERRAFORM_REMOTE_HOST=terraform-server.example.com
+# TERRAFORM_REMOTE_PORT=22
+# TERRAFORM_REMOTE_USERNAME=terraform
+# TERRAFORM_REMOTE_PASSWORD=your_password  # 선택사항 (SSH 키 사용 권장)
+# TERRAFORM_REMOTE_KEY_FILE=/path/to/private/key  # 선택사항
+# TERRAFORM_REMOTE_DIR=/opt/terraform
+DATABASE_URL=postgresql://{{postgresql_id}}:{{postgresql_password}}@localhost:5432/proxmox_manager

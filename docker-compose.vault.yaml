@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  vault:
+    image: hashicorp/vault:1.15.0
+    container_name: vault-dev
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./config/vault-dev.hcl:/vault/config/vault.hcl:ro
+      - vault-data:/vault/file  # Vault 데이터 영구 저장
+    cap_add:
+      - IPC_LOCK
+    command: vault server -config=/vault/config/vault.hcl
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - vault-network
+    environment:
+      - VAULT_ADDR=http://127.0.0.1:8200
+      - VAULT_SKIP_VERIFY=true
+
+
+volumes:
+  vault-data:
+    driver: local
+
+networks:
+  vault-network:
+    driver: bridge

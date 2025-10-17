@@ -1,0 +1,13 @@
+---
+# Node Exporter handlers
+- name: restart node_exporter
+  systemd:
+    name: node_exporter
+    state: restarted
+    daemon_reload: yes
+
+# 공통 시스템 설정 handlers
+- name: restart sshd
+  systemd:
+    name: sshd
+    state: restarted

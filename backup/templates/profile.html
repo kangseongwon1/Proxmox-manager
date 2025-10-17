@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxmox Manager - 프로필</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #6ec6ff 0%, #4db8ff 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .profile-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        .profile-header h1 {
+            color: #4db8ff;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .profile-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #495057;
+        }
+        .info-value {
+            color: #6c757d;
+        }
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            border-color: #4db8ff;
+            box-shadow: 0 0 0 0.2rem rgba(77, 184, 255, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4db8ff 0%, #6ec6ff 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(77, 184, 255, 0.4);
+        }
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .strength-weak { background: #dc3545; }
+        .strength-medium { background: #ffc107; }
+        .strength-strong { background: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- 프로필 정보 -->
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <h1><i class="fas fa-user-circle"></i> 프로필</h1>
+                        <p class="text-muted">사용자 정보 및 비밀번호 관리</p>
+                    </div>
+                    
+                    <div class="profile-info">
+                        <div class="info-item">
+                            <span class="info-label">사용자명</span>
+                            <span class="info-value" id="profile-username">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">이름</span>
+                            <span class="info-value" id="profile-name">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">이메일</span>
+                            <span class="info-value" id="profile-email">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">역할</span>
+                            <span class="info-value" id="profile-role">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">계정 생성일</span>
+                            <span class="info-value" id="profile-created">-</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">마지막 로그인</span>
+                            <span class="info-value" id="profile-last-login">-</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <a href="/" class="btn btn-secondary me-2">
+                            <i class="fas fa-arrow-left"></i> 대시보드로
+                        </a>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="fas fa-key"></i> 비밀번호 변경
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비밀번호 변경 모달 -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-key me-2"></i>비밀번호 변경
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="password-alert" class="alert" style="display: none;"></div>
+                    
+                    <form id="change-password-form">
+                        <div class="mb-3">
+                            <label for="current-password" class="form-label">현재 비밀번호</label>
+                            <input type="password" class="form-control" id="current-password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new-password" class="form-label">새 비밀번호</label>
+                            <input type="password" class="form-control" id="new-password" required>
+                            <div class="password-strength" id="password-strength"></div>
+                            <small class="text-muted">최소 6자 이상</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm-password" class="form-label">새 비밀번호 확인</label>
+                            <input type="password" class="form-control" id="confirm-password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="change-password-btn">
+                        <i class="fas fa-save"></i> 변경
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 프로필 정보 로드
+        function loadProfile() {
+            $.get('/profile', function(data) {
+                $('#profile-username').text(data.username);
+                $('#profile-name').text(data.name);
+                $('#profile-email').text(data.email || '-');
+                $('#profile-role').text(data.role);
+                $('#profile-created').text(data.created_at ? new Date(data.created_at).toLocaleDateString('ko-KR') : '-');
+                $('#profile-last-login').text(data.last_login ? new Date(data.last_login).toLocaleString('ko-KR') : '-');
+            }).fail(function() {
+                alert('프로필 정보를 불러오지 못했습니다.');
+            });
+        }
+
+        // 비밀번호 강도 체크
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]/)) strength++;
+            if (password.match(/[A-Z]/)) strength++;
+            if (password.match(/[0-9]/)) strength++;
+            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            
+            const strengthBar = $('#password-strength');
+            strengthBar.removeClass('strength-weak strength-medium strength-strong');
+            
+            if (strength < 3) {
+                strengthBar.addClass('strength-weak');
+            } else if (strength < 5) {
+                strengthBar.addClass('strength-medium');
+            } else {
+                strengthBar.addClass('strength-strong');
+            }
+        }
+
+        // 알림 표시
+        function showAlert(type, message) {
+            const alert = $('#password-alert');
+            alert.removeClass('alert-success alert-danger alert-warning alert-info')
+                 .addClass(`alert-${type}`)
+                 .html(`<i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i> ${message}`)
+                 .show();
+        }
+
+        // 비밀번호 변경
+        $('#change-password-btn').click(function() {
+            const currentPassword = $('#current-password').val();
+            const newPassword = $('#new-password').val();
+            const confirmPassword = $('#confirm-password').val();
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('warning', '모든 필드를 입력해주세요.');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('danger', '새 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                showAlert('danger', '새 비밀번호는 최소 6자 이상이어야 합니다.');
+                return;
+            }
+            
+            $.ajax({
+                url: '/change-password',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                    confirm_password: confirmPassword
+                }),
+                success: function(response) {
+                    showAlert('success', response.message);
+                    $('#change-password-form')[0].reset();
+                    $('#password-strength').removeClass('strength-weak strength-medium strength-strong');
+                    setTimeout(function() {
+                        $('#changePasswordModal').modal('hide');
+                    }, 2000);
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON?.error || '비밀번호 변경에 실패했습니다.';
+                    showAlert('danger', error);
+                }
+            });
+        });
+
+        // 새 비밀번호 입력 시 강도 체크
+        $('#new-password').on('input', function() {
+            checkPasswordStrength($(this).val());
+        });
+
+        // 모달 닫힐 때 폼 초기화
+        $('#changePasswordModal').on('hidden.bs.modal', function() {
+            $('#change-password-form')[0].reset();
+            $('#password-alert').hide();
+            $('#password-strength').removeClass('strength-weak strength-medium strength-strong');
+        });
+
+        // 페이지 로드 시 프로필 정보 로드
+        $(document).ready(function() {
+            loadProfile();
+        });
+    </script>
+</body>
+</html> 

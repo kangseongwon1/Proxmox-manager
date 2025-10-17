@@ -1,0 +1,84 @@
+<div class="main-content">
+  <div class="storage-panel">
+    <h3><i class="fas fa-box-archive me-2"></i>백업관리</h3>
+    
+    <!-- 검색 및 필터 패널 -->
+    <div class="dashboard-card mb-3">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" id="backup-search" placeholder="VM 이름 또는 ID로 검색...">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="node-filter">
+              <option value="">모든 노드</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="sort-by">
+              <option value="ctime">최신순</option>
+              <option value="vm_name">VM 이름순</option>
+              <option value="size">크기순</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2 shadow-sm" id="refresh-backups">
+              <i class="fas fa-sync-alt fa-sm"></i>
+              <span class="fw-medium">새로고침</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 백업 목록 -->
+    <div class="dashboard-card mb-4">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="mb-0"><i class="fas fa-list me-2"></i>VM별 백업 목록</h5>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge bg-primary" id="backup-count">0개</span>
+          <span class="badge bg-info" id="total-size">0 GB</span>
+        </div>
+      </div>
+      <div class="card-body p-0" id="backups-table-panel">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0" id="backups-table">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 25%;">VM 정보</th>
+                <th style="width: 15%;">노드</th>
+                <th style="width: 20%;">백업 파일</th>
+                <th style="width: 15%;">저장위치</th>
+                <th style="width: 15%;">생성시간</th>
+                <th style="width: 10%;">크기</th>
+              </tr>
+            </thead>
+            <tbody id="backups-tbody">
+              <!-- VM별 백업 목록 동적 렌더링 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VM별 백업 상세 모달 -->
+<div class="modal fade" id="vm-backup-detail-modal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vm-backup-modal-title">VM 백업 상세</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="vm-backup-detail-content">
+          <!-- VM별 백업 상세 내용 -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

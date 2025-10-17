@@ -1,0 +1,27 @@
+[Unit]
+Description=Node Exporter
+Documentation=https://github.com/prometheus/node_exporter
+After=network.target
+
+[Service]
+Type=simple
+User=node_exporter
+Group=node_exporter
+ExecStart=/opt/node_exporter/node_exporter \
+  --web.listen-address=0.0.0.0:9100 \
+  --collector.systemd \
+  --collector.systemd.unit-whitelist="(ssh|docker|nginx|apache2|mysql|postgresql).service" \
+  --collector.filesystem.mount-points-exclude="^/(sys|proc|dev|host|etc)($|/)" \
+  --collector.netdev.device-exclude="^(veth|docker|br-).*" \
+  --collector.diskstats.ignored-devices="^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\d+n\d+p)\d+$" \
+  --collector.textfile.directory=/var/lib/node_exporter/textfile_collector \
+  --web.telemetry-path=/metrics
+
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=node_exporter
+
+[Install]
+WantedBy=multi-user.target

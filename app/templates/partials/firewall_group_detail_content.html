@@ -1,0 +1,42 @@
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h5 class="mb-0" id="fw-group-title">
+        <i class="fas fa-shield-virus me-2"></i>방화벽 그룹 상세
+      </h5>
+      <p class="text-muted mb-0 mt-1" id="fw-group-desc"></p>
+    </div>
+    <button class="btn btn-secondary btn-sm" id="fw-group-list-btn">
+      <i class="fas fa-arrow-left me-1"></i>목록으로
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>규칙 목록</span>
+      <button class="btn btn-primary btn-sm" id="fw-rule-add-btn">
+        <i class="fas fa-plus me-1"></i>규칙 추가
+      </button>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead style="background:#4db8ff;color:white;">
+            <tr>
+              <th style="width:80px;">방향</th>
+              <th style="width:80px;">프로토콜</th>
+              <th style="width:80px;">포트</th>
+              <th style="width:120px;">소스</th>
+              <th style="width:120px;">대상</th>
+              <th style="width:80px;">동작</th>
+              <th style="width:120px;">설명</th>
+              <th style="width:80px;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="fw-rule-tbody">
+            <!-- 동적으로 로드됨 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div> 

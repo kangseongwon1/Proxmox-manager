@@ -1,0 +1,43 @@
+---
+- name: Install vsftpd (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: vsftpd
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install vsftpd (RedHat/Rocky/CentOS)
+  ansible.builtin.yum:
+    name: vsftpd
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Create FTP user
+  ansible.builtin.user:
+    name: "{{ ftp_user | default('ftpuser') }}"
+    password: "{{ 'ftp1234!' | password_hash('sha512') }}"
+    shell: /bin/bash
+    home: /home/{{ ftp_user | default('ftpuser') }}
+    create_home: yes
+
+- name: Create FTP directory
+  ansible.builtin.file:
+    path: /home/{{ ftp_user | default('ftpuser') }}/ftp
+    state: directory
+    mode: '0755'
+    owner: "{{ ftp_user | default('ftpuser') }}"
+    group: "{{ ftp_user | default('ftpuser') }}"
+
+- name: Configure vsftpd
+  ansible.builtin.template:
+    src: vsftpd.conf.j2
+    dest: /etc/vsftpd.conf
+    mode: '0644'
+  notify: restart vsftpd
+
+- name: Ensure vsftpd is running
+  ansible.builtin.service:
+    name: vsftpd
+    state: started
+    enabled: yes 

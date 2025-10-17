@@ -1,0 +1,260 @@
+<div class="main-content">
+  <div class="instances-panel">
+    <h3><i class="fas fa-server me-2"></i>서버 관리</h3>
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>서버 관리</h4>
+      </div>
+      <div class="card-body">
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="serverTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">
+              <i class="fas fa-plus me-1"></i>서버 생성
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="list-tab" data-bs-toggle="tab" data-bs-target="#list" type="button" role="tab">
+              <i class="fas fa-list me-1"></i>서버 목록
+            </button>
+          </li>
+        </ul>
+        <!-- Tab Content -->
+        <div class="tab-content" id="serverTabsContent">
+          <!-- Create Server Tab -->
+          <div class="tab-pane fade show active" id="create" role="tabpanel">
+            {% if 'create_server' in session['permissions'] %}
+            <form id="create-server-form">
+              <!-- 서버 생성 모드 카드형 선택 UI -->
+              <div class="mb-4">
+                <label class="form-label fw-bold">서버 생성 모드</label>
+                <div class="d-flex gap-3" id="server-mode-group">
+                  <div class="mode-card active" data-mode="single">
+                    <i class="fas fa-server fa-2x mb-2"></i>
+                    <div>단일 서버</div>
+                  </div>
+                  <div class="mode-card" data-mode="multi">
+                    <i class="fas fa-layer-group fa-2x mb-2"></i>
+                    <div>다중 서버</div>
+                  </div>
+                </div>
+                <input type="hidden" id="server_mode" name="server_mode" value="single">
+              </div>
+              <!-- 다중 서버 옵션 (기본 숨김) -->
+              <div id="multi-server-options" style="display:none; margin-bottom:24px;">
+                <div class="row g-2 align-items-end">
+                  <div class="col-md-3">
+                    <label class="form-label">서버 개수</label>
+                    <input type="number" id="multi-server-count" class="form-control" min="2" max="20" value="2">
+                  </div>
+                  <div class="col-md-9 text-muted small d-flex align-items-end">
+                    <i class="fas fa-info-circle me-1"></i>서버명은 입력한 이름에 -1, -2 ...가 자동으로 붙습니다.
+                  </div>
+                </div>
+              </div>
+              <!-- 카드형 UI용 임시 스타일 -->
+              <style>
+              #server-mode-group { user-select: none; }
+              .mode-card {
+                border: 2px solid #e0e0e0;
+                border-radius: 12px;
+                padding: 24px 32px;
+                text-align: center;
+                cursor: pointer;
+                transition: border-color 0.2s, box-shadow 0.2s;
+                background: #fafbfc;
+                min-width: 120px;
+                font-size: 1.1rem;
+              }
+              .mode-card.active {
+                border-color: #007bff;
+                box-shadow: 0 0 0 2px #007bff33;
+                background: #eaf4ff;
+                color: #007bff;
+              }
+              .mode-card i {
+                display: block;
+                margin-bottom: 8px;
+              }
+              </style>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">서버 이름</label>
+                  <input type="text" class="form-control" name="name_basic" placeholder="예: my-server-01" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">OS 선택</label>
+                  <select id="os-select" class="form-select" name="os">
+                    <option value="">OS를 선택하세요</option>
+                    <option value="ubuntu">Ubuntu 20.04 (Template ID: 9000)</option>
+                    <option value="rocky">Rocky Linux 8 (Template ID: 8000)</option>
+                    <option value="centos">CentOS 8 (Template ID: 8001)</option>
+                    <option value="debian">Debian 11 (Template ID: 9001)</option>
+                  </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">CPU 코어</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" name="cpu_basic" value="2" min="1" max="32">
+                    <span class="input-group-text">코어</span>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">메모리</label>
+                  <div class="input-group">
+                    <input type="number" class="form-control" name="memory_basic" value="2048" min="512" step="512">
+                    <span class="input-group-text">MB</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 디스크 설정 -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <label class="form-label mb-0"><i class="fas fa-hdd me-1"></i>디스크 설정</label>
+                  <button type="button" class="btn btn-outline-primary btn-sm add-disk-btn">
+                    <i class="fas fa-plus me-1"></i>디스크 추가
+                  </button>
+                </div>
+                <div class="disk-container" id="disk-container-basic">
+                  <div class="disk-item mb-3">
+                    <div class="row">
+                      <div class="col-md-4">
+                        <label class="form-label">디스크 크기</label>
+                        <div class="input-group">
+                          <input type="number" class="form-control disk-size" value="20" min="1" max="1000">
+                          <span class="input-group-text">GB</span>
+                        </div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">인터페이스</label>
+                        <select class="form-select disk-interface">
+                          <option value="scsi0">SCSI 0</option>
+                          <option value="scsi1">SCSI 1</option>
+                          <option value="scsi2">SCSI 2</option>
+                          <option value="scsi3">SCSI 3</option>
+                          <option value="sata0">SATA 0</option>
+                          <option value="sata1">SATA 1</option>
+                          <option value="virtio0">VirtIO 0</option>
+                          <option value="virtio1">VirtIO 1</option>
+                        </select>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">스토리지 타입</label>
+                        <select class="form-select disk-datastore">
+                          <option value="local-lvm" selected>HDD (local-lvm)</option>
+                          <option value="ssd">SSD (ssd)</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-danger btn-sm mt-2 remove-disk-btn">
+                          <i class="fas fa-trash me-1"></i>삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 네트워크 설정 -->
+              <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <label class="form-label mb-0"><i class="fas fa-network-wired me-1"></i>네트워크 설정</label>
+                  <button type="button" class="btn btn-outline-primary btn-sm add-network-btn">
+                    <i class="fas fa-plus me-1"></i>네트워크 추가
+                  </button>
+                </div>
+                <div class="network-container" id="network-container-basic">
+                  <div class="network-item mb-3">
+                    <div class="row">
+                      <div class="col-md-3">
+                        <label class="form-label">브리지</label>
+                        <select class="form-select network-bridge">
+                          <option value="vmbr0">vmbr0</option>
+                          <option value="vmbr1">vmbr1</option>
+                          <option value="vmbr2">vmbr2</option>
+                        </select>
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">IP 주소</label>
+                        <input type="text" class="form-control network-ip" placeholder="192.168.1.100">
+                      </div>
+                      <div class="col-md-2">
+                        <label class="form-label">서브넷</label>
+                        <input type="text" class="form-control network-subnet" placeholder="24" value="24">
+                      </div>
+                      <div class="col-md-3">
+                        <label class="form-label">게이트웨이</label>
+                        <input type="text" class="form-control network-gateway" placeholder="192.168.1.1">
+                      </div>
+                      <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-network-btn" disabled>
+                          <i class="fas fa-trash me-1"></i>삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 역할 선택: 맨 아래, 완전 선택사항 -->
+              <div class="mb-4">
+                <label class="form-label">서버 역할 선택 <span class="text-muted">(선택사항, 한 가지만 선택 가능)</span></label>
+                <select id="role-select" class="form-select">
+                  <option value="">(선택 안 함)</option>
+                  {% for key, role in roles.items() %}
+                    <option value="{{ key }}" title="{{ role.description }}">{{ role.name }}</option>
+                  {% endfor %}
+                </select>
+                <div id="role-desc" class="form-text text-info mt-1"></div>
+                <small class="form-text text-muted">선택 시 해당 역할에 맞는 패키지가 추가로 설치됩니다. (한 가지만 선택 가능)</small>
+              </div>
+              <div class="text-center mt-4">
+                <div id="creation-status" class="mb-3" style="display: none;">
+                  <div class="d-flex flex-column align-items-center justify-content-center" style="min-height:120px;">
+                    <i class="fas fa-spinner fa-spin fa-3x mb-3 text-primary"></i>
+                    <div class="fw-bold" id="status-message">서버 생성 진행 중입니다. 잠시만 기다려주세요...</div>
+                  </div>
+                </div>
+                <button id="create-server-btn" class="btn btn-primary mb-3"><i class="fas fa-plus"></i> 서버 생성</button>
+              </div>
+            </form>
+            {% else %}
+            <div class="alert alert-danger text-center my-5">서버 생성 권한이 없습니다.</div>
+            {% endif %}
+          </div>
+          <!-- Server List Tab -->
+          <div class="tab-pane fade" id="list" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0"><i class="fas fa-list me-2"></i>서버 목록</h5>
+              <button class="btn btn-outline-primary btn-sm refresh-btn">
+                <i class="fas fa-sync-alt me-1"></i>새로고침
+              </button>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover" id="active-server-table">
+                <thead>
+                  <tr>
+                    <th><i class="fas fa-server me-1"></i>서버명</th>
+                    <th><i class="fas fa-tag me-1"></i>역할</th>
+                    <th><i class="fas fa-microchip me-1"></i>CPU</th>
+                    <th><i class="fas fa-memory me-1"></i>메모리</th>
+                    <th><i class="fas fa-network-wired me-1"></i>IP 주소</th>
+                    <th><i class="fas fa-shield-virus me-1"></i>방화벽 그룹</th>
+                    <th><i class="fas fa-circle me-1"></i>상태</th>
+                    <th><i class="fas fa-cogs me-1"></i>액션</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- 서버 리스트 동적 렌더링 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+window.dashboardRoleMap = {
+{% for key, role in roles.items() %}
+  '{{ key }}': '{{ role.name }}'{% if not loop.last %},{% endif %}
+{% endfor %}
+};
+</script> 

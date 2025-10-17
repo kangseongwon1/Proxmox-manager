@@ -1,0 +1,112 @@
+<!-- 방화벽 그룹 관리 모달 -->
+<div class="modal fade" id="firewall-group-management-modal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-shield-virus me-2"></i>Security Group 관리: <span id="fw-group-name"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+        
+        <!-- 규칙 목록 -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">방화벽 규칙</h6>
+          <button class="btn btn-primary btn-sm" id="add-fw-rule-btn">
+            <i class="fas fa-plus me-1"></i>규칙 추가
+          </button>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead class="table-light">
+              <tr>
+                <th>프로토콜</th>
+                <th>포트</th>
+                <th>소스 IP</th>
+                <th>소스 포트</th>
+                <th>대상 IP</th>
+                <th>동작</th>
+                <th>관리</th>
+              </tr>
+            </thead>
+            <tbody id="fw-rules-tbody">
+              <!-- 동적으로 로드됨 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 규칙 추가 모달 -->
+<div class="modal fade" id="add-firewall-rule-modal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-plus me-2"></i>방화벽 규칙 추가
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="add-fw-rule-form">
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">프로토콜</label>
+              <select class="form-select" name="protocol" required>
+                <option value="tcp">TCP</option>
+                <option value="udp">UDP</option>
+                <option value="icmp">ICMP</option>
+                <option value="any">ANY</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">포트</label>
+              <input type="text" class="form-control" name="port" placeholder="예: 80, 443, 22">
+            </div>
+          </div>
+          
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">소스 IP</label>
+              <input type="text" class="form-control" name="source_ip" placeholder="예: 0.0.0.0/0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">소스 포트</label>
+              <input type="text" class="form-control" name="source_port" placeholder="예: 1024:65535">
+            </div>
+          </div>
+          
+          <div class="row mb-2">
+            <div class="col-md-6">
+              <label class="form-label">대상 IP</label>
+              <input type="text" class="form-control" name="dest_ip" placeholder="예: 192.168.1.0/24">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">동작</label>
+              <select class="form-select" name="action" required>
+                <option value="ACCEPT">ACCEPT</option>
+                <option value="DENY">DENY</option>
+                <option value="REJECT">REJECT</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="mb-2">
+            <label class="form-label">설명</label>
+            <input type="text" class="form-control" name="description" placeholder="규칙 설명">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+        <button type="submit" class="btn btn-primary" form="add-fw-rule-form">추가</button>
+      </div>
+    </div>
+  </div>
+</div> 

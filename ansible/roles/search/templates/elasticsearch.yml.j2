@@ -1,0 +1,20 @@
+# Elasticsearch configuration
+cluster.name: elasticsearch-cluster
+node.name: {{ ansible_hostname }}
+
+path.data: /opt/elasticsearch/data
+path.logs: /opt/elasticsearch/logs
+
+network.host: 0.0.0.0
+http.port: {{ elasticsearch_port | default(9200) }}
+
+discovery.type: single-node
+
+# Memory settings
+bootstrap.memory_lock: true
+
+# Security settings (basic)
+xpack.security.enabled: false
+
+# JVM settings
+# These settings are configured in jvm.options 

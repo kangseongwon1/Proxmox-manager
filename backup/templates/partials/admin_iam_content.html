@@ -1,0 +1,339 @@
+<div class="main-content">
+  <div class="iam-card-row" id="iam-summary-row">
+    <!-- 요약 카드 동적 렌더링 -->
+  </div>
+  <div id="iam-alert" class="alert d-none"></div>
+  
+  <!-- 사용자 추가 버튼 -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">사용자 관리</h5>
+    <button id="add-user-btn" class="btn btn-primary">
+      <i class="fas fa-plus me-2"></i>새 사용자 추가
+    </button>
+  </div>
+  
+  <div class="iam-table-container">
+    <div id="iam-loading" class="iam-loading d-none">
+      <i class="fas fa-spinner fa-spin fa-2x"></i><br>로딩 중...
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover iam-table align-middle mb-0">
+        <thead style="background:#4db8ff;color:white;">
+          <tr>
+            <!-- ===== 테이블 헤더 너비 설정 (iam.js의 renderTable 함수와 일치해야 함) ===== -->
+            <th style="width:48px;"></th> <!-- 프로필 아이콘 -->
+            <th class="text-center" style="width:80px;">사용자명</th> <!-- 사용자명 -->
+            <th class="text-center" style="width:140px;">이메일</th> <!-- 이메일 -->
+            <th class="text-center" style="width:110px;">역할</th> <!-- 역할 -->
+            <th class="text-center" style="width:140px;">권한관리</th> <!-- 권한관리 -->
+            <th class="text-center" style="width:120px;">비밀번호 변경</th> <!-- 비밀번호 변경 -->
+            <th class="text-center" style="width:60px;">삭제</th> <!-- 삭제 -->
+            <!-- ===== 테이블 헤더 너비 설정 끝 ===== -->
+          </tr>
+        </thead>
+        <tbody id="iam-user-tbody">
+          <!-- JS로 동적 렌더링 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- ===== 권한 관리 오버레이 (너비/높이 조정 시 여기서 수정) ===== -->
+  <div id="iam-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0008; z-index:2000;">
+    <div style="max-width:800px; margin:40px auto; background:white; border-radius:12px; box-shadow:0 8px 32px rgba(0,0,0,0.18); padding:32px 24px; position:relative;">
+      <button id="iam-overlay-close" class="btn btn-close position-absolute end-0 top-0 m-3"></button>
+      <div id="iam-overlay-content"></div>
+    </div>
+  </div>
+  <!-- ===== 권한 관리 오버레이 끝 ===== -->
+  
+  <!-- 사용자 추가 모달 -->
+  <div id="add-user-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-user-plus me-2"></i>새 사용자 추가
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="add-user-form">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="new-username" class="form-label">사용자명 <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="new-username" name="username" required>
+                </div>
+                <div class="mb-3">
+                  <label for="new-password" class="form-label">비밀번호 <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="new-password" name="password" required>
+                </div>
+                <div class="mb-3">
+                  <label for="new-confirm-password" class="form-label">비밀번호 확인 <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="new-confirm-password" name="confirm_password" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="new-name" class="form-label">이름</label>
+                  <input type="text" class="form-control" id="new-name" name="name">
+                </div>
+                <div class="mb-3">
+                  <label for="new-email" class="form-label">이메일</label>
+                  <input type="email" class="form-control" id="new-email" name="email">
+                </div>
+                <div class="mb-3">
+                  <label for="new-role" class="form-label">역할</label>
+                  <select class="form-select" id="new-role" name="role">
+                    <option value="developer">개발자</option>
+                    <option value="operator">운영자</option>
+                    <option value="viewer">조회자</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">기본 권한</label>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="default-view-all" checked disabled>
+                <label class="form-check-label" for="default-view-all">
+                  조회 권한 (view_all) - 모든 사용자에게 기본 부여
+                </label>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-primary" id="save-user-btn">
+            <i class="fas fa-save me-2"></i>사용자 추가
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 사용자 비밀번호 변경 모달 (공통) -->
+  <div id="iam-password-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info bg-opacity-10">
+          <h5 class="modal-title"><i class="fas fa-key me-2 text-info"></i>비밀번호 변경</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3" id="iam-password-userinfo" style="font-size:1.05em;"></div>
+          <div class="mb-2 text-info"><i class="fas fa-info-circle me-1"></i>관리자는 현재 비밀번호 없이 새 비밀번호만 입력하면 됩니다.</div>
+          <div id="iam-password-alert" class="alert d-none"></div>
+          <form id="iam-password-form">
+            <input type="hidden" id="iam-password-username">
+            <div class="mb-3">
+              <label for="iam-new-password" class="form-label">새 비밀번호</label>
+              <input type="password" class="form-control" id="iam-new-password" required autocomplete="new-password">
+            </div>
+            <div class="mb-3">
+              <label for="iam-confirm-password" class="form-label">새 비밀번호 확인</label>
+              <input type="password" class="form-control" id="iam-confirm-password" required autocomplete="new-password">
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+          <button type="button" class="btn btn-info" id="iam-password-save-btn" style="min-width:100px; font-weight:600;">
+            <i class="fas fa-save me-2"></i>변경
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <style>
+    .iam-table th, .iam-table td {
+      vertical-align: middle;
+      text-align: center;
+      padding: 0.5rem 0.3rem;
+    }
+    .iam-table td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .iam-table td .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.95em;
+    }
+    .iam-table td .btn[title] {
+      transition: background 0.2s;
+    }
+    .iam-table td .btn[title]:hover {
+      background: #f0f0f0;
+    }
+    .iam-table th { font-weight: 600; letter-spacing: 0.5px; }
+    .iam-table tr.iam-user-row:hover { background: #eaf6ff !important; }
+    .iam-expand-btn { min-width: 90px; padding: 4px 12px; font-size: 0.98em; font-weight: 500; transition: background 0.2s, color 0.2s; }
+    .iam-expand-btn:active, .iam-expand-btn:focus { background: #4db8ff !important; color: #fff !important; }
+    
+    /* 새로운 권한 관리 오버레이 스타일 */
+    #iam-overlay { display:none; }
+    #iam-overlay-content { min-height:120px; }
+    
+    .iam-overlay-header {
+      border-bottom: 1px solid #e9ecef;
+      padding-bottom: 1rem;
+    }
+    
+    .iam-user-avatar {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .iam-permissions-container {
+      margin: 1.5rem 0;
+    }
+    
+    /* ===== 권한 섹션 스타일 (너비/높이 조정 시 여기서 수정) ===== */
+    .iam-perm-section {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 1.5rem;
+      height: 100%;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      min-width: 300px; /* 권한 섹션 최소 너비 */
+    }
+    /* ===== 권한 섹션 스타일 끝 ===== */
+    
+    .iam-perm-section:hover {
+      border-color: #e9ecef;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .iam-section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #dee2e6;
+    }
+    
+    .iam-section-header h6 {
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    /* ===== 권한 리스트 스타일 (높이 조정 시 여기서 수정) ===== */
+    .iam-perm-list {
+      min-height: 250px; /* 권한 리스트 최소 높이 */
+      max-height: 350px; /* 권한 리스트 최대 높이 */
+      overflow-y: auto;
+      padding: 0.5rem;
+      border-radius: 8px;
+      background: white;
+      border: 1px solid #e9ecef;
+    }
+    /* ===== 권한 리스트 스타일 끝 ===== */
+    
+    .iam-perm-list.drag-over {
+      background: #e3f2fd;
+      border-color: #2196f3;
+    }
+    
+    .iam-perm-item {
+      background: white;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    
+    .iam-perm-item:hover {
+      border-color: #4db8ff;
+      box-shadow: 0 2px 8px rgba(77, 184, 255, 0.15);
+      transform: translateY(-1px);
+    }
+    
+    .iam-perm-item.assigned {
+      border-color: #28a745;
+      background: #f8fff9;
+    }
+    
+    .iam-perm-item.assigned:hover {
+      border-color: #20c997;
+      box-shadow: 0 2px 8px rgba(40, 167, 69, 0.15);
+    }
+    
+    .iam-perm-item.dragging {
+      opacity: 0.5;
+      transform: rotate(5deg);
+    }
+    
+    .iam-perm-content {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem;
+      gap: 0.75rem;
+    }
+    
+    .iam-perm-info {
+      flex: 1;
+      text-align: left;
+    }
+    
+    .iam-perm-name {
+      font-weight: 600;
+      color: #495057;
+      font-size: 0.9rem;
+    }
+    
+    .iam-perm-desc {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+    
+    .iam-empty-state {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: #6c757d;
+    }
+    
+    .iam-overlay-footer {
+      border-top: 1px solid #e9ecef;
+      padding-top: 1rem;
+    }
+    
+    .iam-help-text {
+      font-size: 0.85rem;
+    }
+    
+    .iam-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    /* 스크롤바 스타일링 */
+    .iam-perm-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .iam-perm-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    
+    .iam-perm-list::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    .iam-perm-list::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  </style>
+</div> 

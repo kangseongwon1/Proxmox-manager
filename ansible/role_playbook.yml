@@ -1,0 +1,44 @@
+---
+- name: 서버 역할 설정 및 Node Exporter 설치
+  become: true
+  hosts: all
+  gather_facts: true
+  vars:
+    ansible_verbosity: 2
+    # 모든 변수는 group_vars/ 디렉토리에서 관리됩니다
+    # - group_vars/all.yml: 모든 서버 공통 변수
+    # - group_vars/web.yml: 웹 서버 전용 변수
+    # - group_vars/db.yml: 데이터베이스 서버 전용 변수
+    # - group_vars/was.yml: WAS 서버 전용 변수
+    
+  pre_tasks:
+    - name: Ensure Python is available (Rocky/RHEL)
+      raw: test -x /usr/bin/python3 || (dnf install -y python3 python3-pip)
+      changed_when: false
+      when: ansible_os_family == "RedHat"
+
+    - name: Ensure Python is available (Debian/Ubuntu)
+      raw: test -x /usr/bin/python3 || (apt update && apt install -y python3 python3-pip)
+      changed_when: false
+      when: ansible_os_family == "Debian"
+
+    - name: Gather facts after Python installation
+      setup:
+
+
+  roles:
+    - name: "{{ role }}"
+      when: role is defined and role != ""
+      
+
+  post_tasks:
+    - name: 역할 설정 완료 알림
+      debug:
+        msg: |
+          ✅ 서버 역할 설정 완료!
+          - 서버: {{ inventory_hostname }}
+          - IP: {{ ansible_default_ipv4.address }}
+          - 역할: {{ role | default('미지정') }}
+          - 시간대: {{ timezone | default('미설정') }}
+          - SSH 패스워드 인증: {{ "활성화" if ssh_password_authentication else "비활성화" }}
+          - SELinux: {{ "활성화" if selinux_enabled else "비활성화" }}

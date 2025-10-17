@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxmox Cloud Console</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/static/session_manager.js"></script>
+  <script src="/static/smart_refresh_manager.js"></script>
+  <script src="/static/navigation.js"></script>
+  <link rel="stylesheet" href="/static/modern-servers.css">
+  <style>
+    :root {
+      --primary-color: #4db8ff;
+      --secondary-color: #6ec6ff;
+      --accent-color: #90e0ff;
+      --success-color: #28a745;
+      --warning-color: #ffc107;
+      --danger-color: #dc3545;
+      --light-bg: #f8f9fa;
+      --border-color: #dee2e6;
+      --text-dark: #212529;
+      --text-muted: #6c757d;
+    }
+
+    body {
+      background-color: var(--light-bg);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      padding-top: 60px;
+    }
+
+    /* Top Header */
+    .top-header {
+      background: linear-gradient(135deg, #6ec6ff 0%, #4db8ff 100%);
+      color: #fff;
+      padding: 0.5rem 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1030;
+    }
+
+    .top-header .navbar-brand {
+      font-weight: 700;
+      font-size: 1.6rem;
+      color: #fff !important;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.18), 0 1px 0 #fff2;
+      letter-spacing: 0.5px;
+    }
+
+    .top-header .nav-link {
+      color: rgba(255,255,255,0.9) !important;
+      font-weight: 500;
+    }
+
+    .top-header .nav-link:hover {
+      color: white !important;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: white;
+      border-right: 1px solid var(--border-color);
+      height: calc(100vh - 60px);
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 250px;
+      overflow-y: auto;
+      box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+      z-index: 1020;
+    }
+
+    .sidebar .nav-link {
+      color: var(--text-dark);
+      padding: 0.75rem 1.5rem;
+      border-left: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: var(--light-bg);
+      border-left-color: var(--accent-color);
+    }
+
+    .sidebar .nav-link.active {
+      background-color: var(--light-bg);
+      border-left-color: var(--primary-color);
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .sidebar .nav-link i {
+      width: 20px;
+      margin-right: 10px;
+    }
+
+    /* Main Content */
+    .main-content {
+      margin-left: 250px;
+      margin-top: 60px;
+      padding: 2rem;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* Dashboard Cards */
+    .dashboard-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+
+    .dashboard-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+
+    .dashboard-card .card-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border-radius: 8px 8px 0 0;
+      border: none;
+      padding: 1rem 1.5rem;
+    }
+
+    .dashboard-card .card-body {
+      padding: 1.5rem;
+    }
+
+    /* Stats Cards */
+    .stats-card {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+      text-align: center;
+    }
+
+    .stats-card .stats-icon {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .stats-card .stats-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .stats-card .stats-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stats-card .stats-subtitle {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      font-weight: 400;
+      margin-top: 0.5rem;
+    }
+
+    /* Resource Cards */
+    .resource-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      height: 100%;
+    }
+
+    .resource-card:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-2px);
+    }
+
+    .resource-header {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      color: white;
+      border-radius: 8px 8px 0 0;
+      padding: 1rem 1.5rem;
+    }
+
+    .resource-header h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .resource-content {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .resource-ring-container {
+      flex-shrink: 0;
+    }
+
+    .resource-ring {
+      position: relative;
+      display: inline-block;
+    }
+
+    .resource-ring svg {
+      transform: rotate(-90deg);
+    }
+
+    .ring-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .ring-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-dark);
+      line-height: 1;
+    }
+
+    .ring-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .resource-details {
+      flex-grow: 1;
+    }
+
+    .resource-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .resource-item:last-child {
+      border-bottom: none;
+    }
+
+    .resource-label {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .resource-value {
+      color: var(--text-dark);
+      font-weight: 600;
+    }
+
+    /* Server Summary List */
+    .server-summary-container {
+      max-height: 400px;
+      overflow-y: auto;
+      transition: max-height 0.3s ease, border-color 0.2s ease;
+      border-radius: 0 0 8px 8px;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid transparent;
+      user-select: none;
+    }
+
+    .server-summary-container:hover {
+      border-color: var(--primary-color);
+      background-color: rgba(0, 123, 255, 0.02);
+    }
+    
+    .server-summary-container:active {
+      background-color: rgba(0, 123, 255, 0.05);
+    }
+
+    .server-summary-container.expanded {
+      max-height: 600px;
+    }
+
+    .server-summary-container.maximized {
+      max-height: 80vh;
+    }
+
+    .server-summary-container::after {
+      content: "더블클릭으로 최대화";
+      position: absolute;
+      bottom: 5px;
+      right: 10px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      opacity: 0.9;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    .server-summary-container.expanded::after,
+    .server-summary-container.maximized::after {
+      content: "더블클릭으로 복원";
+    }
+
+    .server-list-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      background: white;
+      transition: all 0.2s ease;
+    }
+
+    .server-list-item:hover {
+      background-color: var(--light-bg);
+    }
+
+    .server-list-item:last-child {
+      border-bottom: none;
+    }
+
+    .server-list-item .server-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      margin-right: 1rem;
+      flex-shrink: 0;
+    }
+
+    .server-list-item .server-info {
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .server-list-item .server-name {
+      font-weight: 600;
+      color: var(--text-dark);
+      min-width: 120px;
+    }
+
+    .server-list-item .server-role {
+      min-width: 80px;
+    }
+
+    .server-list-item .server-resources {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 150px;
+    }
+
+    .server-list-item .server-ip {
+      min-width: 120px;
+      color: var(--text-muted);
+    }
+
+    .server-list-item .server-status {
+      min-width: 100px;
+      text-align: center;
+    }
+
+    /* Responsive Design for Server List */
+    @media (max-width: 768px) {
+      .server-list-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .server-list-item .server-icon {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+      }
+
+      .server-list-item .server-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        width: 100%;
+      }
+
+      .server-list-item .server-name,
+      .server-list-item .server-role,
+      .server-list-item .server-resources,
+      .server-list-item .server-ip,
+      .server-list-item .server-status {
+        min-width: auto;
+        width: 100%;
+      }
+
+      .server-list-item .server-resources {
+        justify-content: flex-start;
+      }
+
+      .server-list-item .server-status {
+        text-align: left;
+      }
+    }
+
+    .server-list-item .resource-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      background: var(--light-bg);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .server-list-item .resource-badge i {
+      color: var(--primary-color);
+    }
+
+    /* Scrollbar Styling */
+    .server-summary-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .server-summary-container::-webkit-scrollbar-track {
+      background: var(--light-bg);
+      border-radius: 4px;
+    }
+
+    .server-summary-container::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .server-summary-container::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      border-radius: 6px;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary-color);
+      border-color: var(--secondary-color);
+    }
+
+    .btn-success {
+      background: var(--success-color);
+      border-color: var(--success-color);
+      border-radius: 6px;
+    }
+
+    .btn-warning {
+      background: var(--warning-color);
+      border-color: var(--warning-color);
+      border-radius: 6px;
+      color: var(--text-dark);
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+      border-color: var(--danger-color);
+      border-radius: 6px;
+    }
+
+    /* Forms */
+    .form-control, .form-select {
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 0.75rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(0, 115, 170, 0.25);
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Tables */
+    .table {
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table thead th {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      font-weight: 600;
+      padding: 1rem;
+    }
+
+    .table tbody tr {
+      transition: all 0.3s ease;
+    }
+
+    .table tbody tr:hover {
+      background-color: var(--light-bg);
+    }
+
+    .table tbody td {
+      padding: 1rem;
+      border-color: var(--border-color);
+      vertical-align: middle;
+    }
+
+    /* Badges */
+    .badge {
+      border-radius: 4px;
+      font-weight: 500;
+      padding: 0.5rem 0.75rem;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .nav-tabs .nav-link {
+      border: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 0.75rem 1rem;
+      border-radius: 0;
+    }
+
+    .nav-tabs .nav-link.active {
+      color: var(--primary-color);
+      background: none;
+      border-bottom: 2px solid var(--primary-color);
+    }
+
+    /* Server Form */
+    .server-form {
+      background: white;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .server-form h5 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      
+      .sidebar.show {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+        padding: 1rem;
+      }
+    }
+
+    /* Select2 Customization */
+    .select2-container--bootstrap-5 .select2-selection {
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(0, 115, 170, 0.25);
+    }
+
+    /* Disk and Network Items */
+    .disk-item, .network-item {
+      background: var(--light-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .disk-item:hover, .network-item:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 2px 4px rgba(0, 115, 170, 0.1);
+    }
+
+    .disk-container, .network-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    /* Progress Bar */
+    .progress {
+      height: 8px;
+      border-radius: 4px;
+      background-color: var(--light-bg);
+    }
+
+    .progress-bar {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    }
+
+    /* Notifications */
+    .alert {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .alert-success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      color: white;
+    }
+
+    .alert-danger {
+      background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+      color: white;
+    }
+
+    .alert-info {
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+      color: white;
+    }
+
+    /* Button Improvements */
+    .btn-group .btn {
+      border-radius: 4px;
+      margin-right: 2px;
+    }
+
+    .btn-group .btn:last-child {
+      margin-right: 0;
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Form Improvements */
+    .input-group-text {
+      background-color: var(--light-bg);
+      border-color: var(--border-color);
+      color: var(--text-muted);
+    }
+
+    /* Table Improvements */
+    .table th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .table td {
+      vertical-align: middle;
+    }
+
+    /* Badge Improvements */
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+    }
+
+    /* Responsive Improvements */
+    @media (max-width: 768px) {
+      .disk-item .row, .network-item .row {
+        flex-direction: column;
+      }
+      
+      .disk-item .col-md-4, .network-item .col-md-4 {
+        margin-bottom: 1rem;
+      }
+      
+      .btn-group {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .btn-group .btn {
+        margin-bottom: 0.25rem;
+        margin-right: 0;
+      }
+    }
+    .fa-spin {
+      animation: fa-spin 1s infinite linear !important;
+    }
+    @keyframes fa-spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(359deg);}
+    }
+    .server-role-apply, .server-role-remove {
+      white-space: nowrap;
+      min-width: 90px;
+      padding-left: 12px;
+      padding-right: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Header -->
+  <nav class="navbar navbar-expand-lg top-header">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="fas fa-cloud me-2"></i>Proxmox Cloud Console
+      </a>
+      <div class="navbar-nav ms-auto">
+        <div class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-bell me-1"></i>알림
+            <span class="badge bg-danger ms-1" id="notification-badge" style="display: none;">0</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 450px; max-height: 600px; overflow-y: auto;">
+            <li><h6 class="dropdown-header">알림</h6></li>
+            <li><hr class="dropdown-divider"></li>
+            <div id="notification-list">
+              <li class="text-center text-muted py-3">알림이 없습니다</li>
+            </div>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-center" href="#" id="clear-all-notifications">모든 알림 삭제</a></li>
+          </ul>
+        </div>
+        {% if session['role'] == 'admin' %}
+        <a class="nav-link" href="#iam" id="user-management-btn"><i class="fas fa-users-cog me-1"></i>사용자 관리</a>
+        {% endif %}
+        <a class="nav-link" href="{{ url_for('auth.profile') }}"><i class="fas fa-user me-1"></i>프로필</a>
+        <a class="nav-link" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-1"></i>로그아웃</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link active" href="#dashboard">
+          <i class="fas fa-tachometer-alt"></i>대시보드
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#instances">
+          <i class="fas fa-server"></i>인스턴스
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#storageSubmenu" role="button" aria-expanded="false" aria-controls="storageSubmenu">
+          <i class="fas fa-hdd me-1"></i>스토리지 <span class="dropdown-toggle"></span>
+        </a>
+        <div class="collapse" id="storageSubmenu">
+          <ul class="nav flex-column ms-3 mb-2">
+            <li class="nav-item">
+              <a class="nav-link" href="#storage"><i class="fas fa-hdd me-1"></i>스토리지 정보</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#backups"><i class="fas fa-box-archive me-1"></i>백업관리</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="collapse" href="#securitySubmenu" role="button" aria-expanded="false" aria-controls="securitySubmenu">
+          <i class="fas fa-shield-alt me-1"></i>보안 <span class="dropdown-toggle"></span>
+        </a>
+        <div class="collapse" id="securitySubmenu">
+          <ul class="nav flex-column ms-3 mb-2">
+            <li class="nav-item">
+              <a class="nav-link" href="#iam"><i class="fas fa-users-cog me-1"></i>사용자 관리</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#firewall-groups"><i class="fas fa-shield-virus me-1"></i>방화벽 설정</a>
+            </li>
+            <!-- 필요시 다른 하위 메뉴 추가 -->
+          </ul>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#monitoring">
+          <i class="fas fa-chart-line"></i>모니터링
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <div id="main-content"></div>
+
+  <!-- 로그 모달 추가 -->
+  <div class="modal fade" id="log-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fas fa-file-alt me-2"></i>실행 로그</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <pre id="log-modal-content" style="max-height:60vh; background:#222; color:#eee; padding:1rem; border-radius:8px; font-size:0.95em; overflow:auto;"></pre>
+          <div class="mt-2 text-end">
+            <a id="log-modal-download" href="#" class="btn btn-outline-secondary btn-sm" download target="_blank"><i class="fas fa-download me-1"></i>로그 다운로드</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사용자 관리 기능은 이제 SPA 라우팅으로 처리됨 (#iam) -->
+
+  <script>
+  $(document).ready(function() {
+    $('#role-select').select2({
+      theme: 'bootstrap-5',
+      placeholder: '역할을 선택/검색하세요',
+      width: '100%'
+    });
+    $('#os-select').select2({
+      theme: 'bootstrap-5',
+      placeholder: 'OS를 선택하세요',
+      width: '100%'
+    });
+
+    // 자동 새로고침 타이머
+    let refreshTimer;
+    
+    // 서버 상태 자동 새로고침 시작
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer);
+      refreshTimer = setInterval(function() {
+        if ($('#list-tab').hasClass('active')) {
+          loadActiveServers();
+        }
+      }, 30000); // 30초마다 새로고침
+    }
+    
+    // 자동 새로고침 중지
+    function stopAutoRefresh() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+    }
+    
+    // 탭 변경 시 자동 새로고침 제어
+    $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+      if (e.target.id === 'list-tab') {
+        loadActiveServers();
+        startAutoRefresh();
+      } else {
+        stopAutoRefresh();
+      }
+    });
+
+    // 역할 설명 동적 표시
+    $('#role-select').on('change', function() {
+      var desc = $('#role-select option:selected').attr('title') || '';
+      $('#role-desc').text(desc);
+    });
+    // 페이지 로드시 초기화
+    $('#role-select').trigger('change');
+
+
+
+    // 페이지 언로드 시 인터벌 정리
+    $(window).on('beforeunload', function() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer);
+      }
+    });
+
+    // (관리자 전용) 사용자 관리 기능은 이제 SPA 라우팅으로 처리됨 (#iam)
+
+
+
+    // 예시: 대시보드 메뉴 클릭 시
+    $(document).on('click', '#dashboard-menu', function(e) {
+        e.preventDefault();
+        $('#main-content').html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><br>로딩 중...</div>');
+        $.get('/dashboard/content', function(html) {
+            $('#main-content').html(html);
+        }).fail(function() {
+            $('#main-content').html('<div class="text-danger">대시보드 정보를 불러올 수 없습니다.</div>');
+        });
+    });
+  });
+  </script>
+  <script>
+  window.userRole = "{{ session['role'] }}";
+  </script>
+
+  <script>
+  // SPA: 서비스별 partial 동적 로드
+  function loadSPA(url, scriptUrl) {
+    $('#main-content').html('<div class="text-center py-5"><i class="fas fa-spinner fa-spin fa-2x"></i><br>로딩 중...</div>');
+    
+    // 페이지 이동 시 서버 상태 폴링 중지
+    if (typeof stopServerStatusPolling === 'function') {
+      stopServerStatusPolling();
+    }
+    
+    $.get(url, function(html) {
+      $('#main-content').html(html);
+      if (scriptUrl) {
+        // 스크립트 로드 (중복 방지 제거, 각 스크립트에서 자체 관리)
+        const scriptName = scriptUrl.split('/').pop();
+        
+        // 버전 파라미터가 있으면 캐시 무효화
+        if (scriptUrl.includes('?v=')) {
+          console.log(`[loadSPA] 캐시 무효화로 스크립트 재로드: ${scriptName}`);
+          // 기존 스크립트 제거
+          $('script[src*="' + scriptName + '"]').remove();
+        }
+        
+        console.log(`[loadSPA] 스크립트 로드: ${scriptName}`);
+        $.getScript(scriptUrl).done(function() {
+          console.log(`[loadSPA] 스크립트 로드 완료: ${scriptName}`);
+        }).fail(function() {
+          console.error(`[loadSPA] 스크립트 로드 실패: ${scriptName}`);
+        });
+      }
+    });
+  }
+  // 메뉴 클릭 이벤트 (사이드바 네비게이션)
+  $(document).on('click', '.sidebar .nav-link', function(e) {
+    const href = $(this).attr('href');
+    e.preventDefault();
+    
+    // 사이드바 메뉴 활성화 상태 설정
+    $('.sidebar .nav-link').removeClass('active');
+    $(this).addClass('active');
+    
+    // URL 해시 업데이트
+    if (href.startsWith('#')) {
+      window.location.hash = href;
+    } else {
+      window.location.hash = href;
+    }
+    
+    // 페이지 로드
+    if (href === '#iam') {
+      loadSPA('/admin/iam/content', '/static/iam.js');
+    } else if (href === '#dashboard') {
+      loadSPA('/dashboard/content', '/static/dashboard.js');
+    } else if (href === '#instances') {
+      loadSPA('/instances/content', '/static/instances.js');
+    } else if (href === '#storage') {
+      loadSPA('/storage/content', '/static/storage.js');
+    } else if (href === '#backups') {
+      loadSPA('/backups/content', '/static/backups.js');
+    }
+    // 필요시 네트워크, 모니터링 등 추가
+  });
+
+  // 드롭다운 메뉴 클릭 이벤트 (사용자 관리 등)
+  $(document).on('click', '.sidebar .dropdown-item', function(e) {
+    const href = $(this).attr('href');
+    e.preventDefault();
+    
+    // 사이드바 메뉴 활성화 상태 설정 (드롭다운 부모 메뉴도 활성화)
+    $('.sidebar .nav-link').removeClass('active');
+    $('.sidebar .dropdown-item').removeClass('active');
+    $(this).addClass('active');
+    $(this).closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    
+    // URL 해시 업데이트
+    if (href.startsWith('#')) {
+      window.location.hash = href;
+    } else {
+      window.location.hash = href;
+    }
+    
+    // 페이지 로드
+    if (href === '#iam') {
+      loadSPA('/admin/iam/content', '/static/iam.js');
+    } else if (href === '#dashboard') {
+      loadSPA('/dashboard/content', '/static/dashboard.js');
+    } else if (href === '#instances') {
+      loadSPA('/instances/content', '/static/instances.js');
+    } else if (href === '#storage') {
+      loadSPA('/storage/content', '/static/storage.js');
+    } else if (href === '#backups') {
+      loadSPA('/backups/content', '/static/backups.js');
+    } else if (href === '#monitoring') {
+      loadSPA('/monitoring/content', '/static/monitoring.js');
+    }
+  });
+
+  // 상단 네비게이션 사용자 관리 버튼 클릭 이벤트
+  $(document).on('click', '#user-management-btn', function(e) {
+    e.preventDefault();
+    const href = $(this).attr('href');
+    
+    // 사이드바 메뉴 활성화 상태 설정
+    $('.sidebar .nav-link').removeClass('active');
+    $('.sidebar .dropdown-item').removeClass('active');
+    $('.sidebar .dropdown-item[href="#iam"]').addClass('active');
+    $('.sidebar .dropdown-item[href="#iam"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    
+    // URL 해시 업데이트
+    window.location.hash = href;
+    
+    // 페이지 로드
+    loadSPA('/admin/iam/content', '/static/iam.js');
+  });
+  // URL 해시 기반 라우팅 함수
+  function handleRoute() {
+    const hash = window.location.hash || '#dashboard';
+    console.log('[index.html] 현재 해시:', hash);
+    
+    switch(hash) {
+      case '#dashboard':
+        loadSPA('/dashboard/content', '/static/dashboard.js');
+        break;
+      case '#instances':
+        loadSPA('/instances/content', '/static/instances.js');
+        break;
+      case '#storage':
+        loadSPA('/storage/content', '/static/storage.js');
+        break;
+      case '#iam':
+        loadSPA('/admin/iam/content', '/static/iam.js');
+        break;
+      case '#firewall-groups':
+        loadSPA('/firewall/groups/content', '/static/firewall.js?v=' + Date.now(), function() {
+          if (window.loadFirewallGroups) {
+            console.log('[index.html] 방화벽 그룹 데이터 자동 로드');
+            window.loadFirewallGroups();
+          }
+        });
+        break;
+      case '#monitoring':
+        loadSPA('/monitoring/content', '/static/monitoring.js');
+        break;
+      default:
+        if (hash.startsWith('#firewall-group-')) {
+          const group = decodeURIComponent(hash.replace('#firewall-group-', ''));
+          loadFirewallGroupDetail(group);
+        } else {
+          loadSPA('/dashboard/content', '/static/dashboard.js');
+        }
+        break;
+    }
+  }
+  
+  // 초기 진입 시 URL 해시에 따른 페이지 로드
+  $(document).ready(function() {
+    const hash = window.location.hash || '#dashboard';
+    console.log('[index.html] 초기 해시:', hash);
+    
+    // 사이드바 메뉴 활성화 상태 설정
+    $('.sidebar .nav-link').removeClass('active');
+    $('.sidebar .dropdown-item').removeClass('active');
+    if (hash === '#instances') {
+      loadSPA('/instances/content', '/static/instances.js');
+      $('.sidebar .nav-link[href="#instances"]').addClass('active');
+    } else if (hash === '#storage') {
+      loadSPA('/storage/content', '/static/storage.js');
+      $('.sidebar .nav-link[href="#storage"]').addClass('active');
+    } else if (hash === '#iam') {
+      loadSPA('/admin/iam/content', '/static/iam.js');
+      $('.sidebar .dropdown-item[href="#iam"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#iam"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#firewall-groups') {
+      loadSPA('/firewall/groups/content', '/static/firewall.js?v=' + Date.now(), function() {
+        if (window.loadFirewallGroups) {
+          console.log('[index.html] 방화벽 그룹 데이터 자동 로드');
+          window.loadFirewallGroups();
+        }
+      });
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#backups') {
+      loadSPA('/backups/content', '/static/backups.js');
+      $('#storageSubmenu').addClass('show');
+      $('.sidebar .nav-link[href="#backups"]').addClass('active');
+      $('.sidebar .nav-link[href="#backups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#monitoring') {
+      loadSPA('/monitoring/content', '/static/monitoring.js');
+      $('.sidebar .nav-link[href="#monitoring"]').addClass('active');
+    } else if (hash.startsWith('#firewall-group-')) {
+      const group = decodeURIComponent(hash.replace('#firewall-group-', ''));
+      loadFirewallGroupDetail(group);
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else {
+      loadSPA('/dashboard/content', '/static/dashboard.js');
+      $('.sidebar .nav-link[href="#dashboard"]').addClass('active');
+    }
+  });
+
+  // 브라우저 뒤로가기/앞으로가기 버튼 처리
+  $(window).on('popstate', function() {
+    const hash = window.location.hash || '#dashboard';
+    console.log('[index.html] popstate 해시:', hash);
+    
+    // 사이드바 메뉴 활성화 상태 설정
+    $('.sidebar .nav-link').removeClass('active');
+    $('.sidebar .dropdown-item').removeClass('active');
+    if (hash === '#instances') {
+      loadSPA('/instances/content', '/static/instances.js');
+      $('.sidebar .nav-link[href="#instances"]').addClass('active');
+    } else if (hash === '#storage') {
+      loadSPA('/storage/content', '/static/storage.js');
+      $('.sidebar .nav-link[href="#storage"]').addClass('active');
+    } else if (hash === '#iam') {
+      loadSPA('/admin/iam/content', '/static/iam.js');
+      $('.sidebar .dropdown-item[href="#iam"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#iam"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#firewall-groups') {
+      loadSPA('/firewall/groups/content', '/static/firewall.js?v=' + Date.now(), function() {
+        if (window.loadFirewallGroups) {
+          console.log('[index.html] 방화벽 그룹 데이터 자동 로드');
+          window.loadFirewallGroups();
+        }
+      });
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#monitoring') {
+      loadSPA('/monitoring/content', '/static/monitoring.js');
+      $('.sidebar .nav-link[href="#monitoring"]').addClass('active');
+    } else if (hash.startsWith('#firewall-group-')) {
+      const group = decodeURIComponent(hash.replace('#firewall-group-', ''));
+      loadFirewallGroupDetail(group);
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').addClass('active');
+      $('.sidebar .dropdown-item[href="#firewall-groups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else if (hash === '#backups') {
+      loadSPA('/backups/content', '/static/backups.js');
+      $('#storageSubmenu').addClass('show');
+      $('.sidebar .nav-link[href="#backups"]').addClass('active');
+      $('.sidebar .nav-link[href="#backups"]').closest('.dropdown').find('.dropdown-toggle').addClass('active');
+    } else {
+      loadSPA('/dashboard/content', '/static/dashboard.js');
+      $('.sidebar .nav-link[href="#dashboard"]').addClass('active');
+    }
+  });
+  </script>
+
+
+
+
+</body>
+</html>

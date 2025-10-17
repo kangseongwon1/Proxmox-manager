@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: proxmox-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: ["/bin/sh", "-c", "exec redis-server --requirepass \"${REDIS_PASSWORD}\" --appendonly yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "PING"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - proxmox_network
+
+
+  celery-flower:
+    image: mher/flower:latest
+    container_name: proxmox-celery-flower
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+    environment:
+      - FLOWER_BROKER_API=redis://:${REDIS_PASSWORD:-}@redis:6379/0
+      - FLOWER_PORT=5555
+    networks:
+      - proxmox_network
+
+networks:
+  proxmox_network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
+
+

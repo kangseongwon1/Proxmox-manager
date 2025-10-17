@@ -1,0 +1,50 @@
+# WAS 서버 전용 변수
+# was 역할을 가진 서버들에만 적용
+
+# === Java 기본 설정 ===
+java_version: "11"
+java_home: "/usr/lib/jvm/java-{{ java_version }}-openjdk"
+java_opts: "-Xms512m -Xmx1024m -XX:+UseG1GC"
+java_debug_port: 5005
+java_debug_enabled: false
+
+# === Tomcat 기본 설정 ===
+tomcat_version: "9"
+tomcat_port: 8080
+tomcat_manager_port: 8081
+tomcat_ajp_port: 8009
+tomcat_shutdown_port: 8005
+tomcat_home: "/opt/tomcat"
+tomcat_webapps_path: "{{ tomcat_home }}/webapps"
+tomcat_logs_path: "{{ tomcat_home }}/logs"
+tomcat_temp_path: "{{ tomcat_home }}/temp"
+tomcat_work_path: "{{ tomcat_home }}/work"
+
+# === JVM 튜닝 ===
+tomcat_heap_size: "1024m"
+tomcat_permgen_size: "256m"
+tomcat_gc_algorithm: "G1GC"
+tomcat_gc_log_enabled: true
+
+# === 연결 풀 설정 ===
+tomcat_max_connections: 200
+tomcat_max_threads: 150
+tomcat_min_spare_threads: 10
+tomcat_connection_timeout: 20000
+
+# === 세션 설정 ===
+tomcat_session_timeout: 30
+tomcat_session_persistent: false
+tomcat_session_clustering: false
+
+# === 로그 설정 ===
+tomcat_access_log_enabled: true
+tomcat_access_log_pattern: "%h %l %u %t \"%r\" %s %b %D"
+tomcat_log_level: "INFO"
+
+# === 보안 설정 ===
+tomcat_manager_enabled: false
+tomcat_manager_user: "admin"
+tomcat_manager_password: "{{ ansible_tomcat_manager_password | default('admin123') }}"
+tomcat_https_enabled: false
+tomcat_ssl_port: 8443

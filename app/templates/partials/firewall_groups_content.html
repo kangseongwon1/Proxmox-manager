@@ -1,0 +1,39 @@
+<div class="main-content">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">
+      <i class="fas fa-shield-virus me-2"></i>Datacenter Security Group 관리
+    </h5>
+    <button class="btn btn-primary btn-sm" id="add-fw-group-btn">
+      <i class="fas fa-plus me-1"></i>새 Security Group 추가
+    </button>
+  </div>
+  
+  <!-- 정보 알림 -->
+  <div class="alert alert-info mb-3">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Datacenter Security Group 시스템:</strong> Proxmox Datacenter 레벨에서 Security Group을 생성하고 관리합니다. VM에 할당하면 해당 VM에 방화벽 규칙이 자동으로 적용됩니다.
+  </div>
+  
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead style="background:#4db8ff;color:white;">
+            <tr>
+              <th style="width:80px;">그룹명</th>
+              <th style="width:200px;">설명 및 할당된 VM</th>
+              <th style="width:80px;">규칙 수</th>
+              <th style="width:150px;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="fw-group-tbody">
+            <!-- 동적으로 로드됨 -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Security Group 설정 모달 포함 -->
+{% include 'partials/security_group_config_modal.html' %} 

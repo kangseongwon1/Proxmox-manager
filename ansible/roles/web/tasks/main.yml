@@ -1,0 +1,30 @@
+---
+- name: Install nginx (RedHat/Rocky/CentOS)
+  ansible.builtin.package:
+    name: nginx
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install nginx (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Create basic nginx configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    backup: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Test nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is running
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: yes 

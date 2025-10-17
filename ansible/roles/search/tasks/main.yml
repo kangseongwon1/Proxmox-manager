@@ -1,0 +1,88 @@
+---
+- name: Install dependencies (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - wget
+      - apt-transport-https
+      - openjdk-11-jdk
+      - curl
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install dependencies (RedHat/Rocky/CentOS)
+  ansible.builtin.yum:
+    name:
+      - wget
+      - java-11-openjdk-devel
+      - curl
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Download elasticsearch-7.17.10
+  ansible.builtin.get_url:
+    url: https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.17.10-linux-x86_64.tar.gz
+    dest: /opt/elasticsearch-7.17.10-linux-x86_64.tar.gz
+    mode: '0644'
+
+- name: Extract elasticsearch
+  ansible.builtin.unarchive:
+    src: /opt/elasticsearch-7.17.10-linux-x86_64.tar.gz
+    dest: /opt/
+    remote_src: yes
+
+- name: Create symlink for elasticsearch
+  ansible.builtin.file:
+    src: /opt/elasticsearch-7.17.10
+    dest: /opt/elasticsearch
+    state: link
+    force: yes
+
+- name: Create elasticsearch user
+  ansible.builtin.user:
+    name: elasticsearch
+    shell: /bin/bash
+    system: yes
+    create_home: yes
+
+- name: Change ownership
+  ansible.builtin.file:
+    path: /opt/elasticsearch-7.17.10
+    owner: elasticsearch
+    group: elasticsearch
+    recurse: yes
+
+- name: Configure elasticsearch
+  ansible.builtin.template:
+    src: elasticsearch.yml.j2
+    dest: /opt/elasticsearch/config/elasticsearch.yml
+    owner: elasticsearch
+    group: elasticsearch
+    mode: '0644'
+
+- name: Create systemd service for elasticsearch
+  ansible.builtin.template:
+    src: elasticsearch.service.j2
+    dest: /etc/systemd/system/elasticsearch.service
+    mode: '0644'
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start elasticsearch
+  ansible.builtin.service:
+    name: elasticsearch
+    state: started
+    enabled: yes
+
+- name: Wait for Elasticsearch to be ready
+  ansible.builtin.uri:
+    url: http://localhost:{{ elasticsearch_port | default(9200) }}
+    method: GET
+    status_code: 200
+  register: elasticsearch_ready
+  until: elasticsearch_ready.status == 200
+  retries: 30
+  delay: 10 
